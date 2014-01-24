@@ -1,6 +1,7 @@
 #ifndef OVERLAP_DATA_H_
 #define OVERLAP_DATA_H_
 
+#include <stdio.h>
 #include <stdint.h>
 #include <sys/types.h>
 
