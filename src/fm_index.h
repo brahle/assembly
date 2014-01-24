@@ -15,6 +15,7 @@ class FMIndex {
   FMIndex();
   virtual ~FMIndex();
 
+  virtual size_t size() const = 0;
   // Return count of values less than 'chr' in complete BWT.
   virtual uint32_t Less(uint8_t chr) const = 0;
   // Return count of values equal to 'chr' in first 'pos' values of BWT.

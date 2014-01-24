@@ -4,7 +4,7 @@ CFLAGS=-c -Wall -O2 -std=c++0x
 LDFLAGS=-lsais
 # Sources.
 SRCDIR=src
-SOURCES=main.cpp data.cpp fm_index.cpp suffix_array.cpp
+SOURCES=main.cpp data.cpp fm_index.cpp suffix_array.cpp sort.cpp
 # Objects.
 OBJDIR=obj
 OBJECTS=$(SOURCES:.cpp=.o)
