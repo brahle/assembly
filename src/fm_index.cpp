@@ -1,67 +1,77 @@
-#include <stdio.h>
-#include <string.h>
+#include <cstring>
 
-#include <string>
-#include <vector>
+#include "data.h"
+#include "fm_index.h"
 
-#include <sais.h>
 
-using namespace std;
+namespace overlap {
 
-class FMIndex {
- public:
-  FMIndex(const uint8_t* bwt, size_t size, size_t depth, size_t bucket_size) :
-      bwt_(bwt), size_(size), depth_(depth), bucket_size_(bucket_size),
-      num_buckets_(size_ / bucket_size_ + 1) {
-    Init();
+
+FMIndex::FMIndex() {}
+
+FMIndex::~FMIndex() {}
+
+BucketedFMIndex::BucketedFMIndex(const String* bwt, size_t max_val, size_t bucket_size)
+  : FMIndex(),
+    bwt_(bwt),
+    size_(bwt_->size()),
+    max_val_(max_val),
+    char_counts_(new uint32_t[max_val_ + 2]),
+    bucket_size_(bucket_size),
+    num_buckets_((size_ - 1) / bucket_size_ + 2),
+    buckets_(new uint32_t[num_buckets_ * max_val_]) {}
+
+BucketedFMIndex::~BucketedFMIndex() {
+  delete [] char_counts_;
+  delete [] buckets_;
+}
+
+uint32_t BucketedFMIndex::Less(uint8_t chr) const {
+  return char_counts_[chr];
+}
+
+uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
+  uint32_t count = 0;
+  for (uint32_t idx = pos % bucket_size_; idx > 0; --idx) {
+    count += ((*bwt_)[pos - idx] == chr ? 1 : 0);
   }
-
-  uint32_t Rank(uint8_t chr, uint32_t pos) {
-    uint32_t count = 0;
-    for (uint32_t idx = pos % bucket_size_; idx > 0; --idx) {
-      count += (bwt_[pos - idx] == chr ? 1 : 0);
-    }
-    uint32_t* bucket = count_buckets_ + (pos / bucket_size_ * depth_);
-    if (chr > 0) {
-      count += bucket[chr - 1];
-    } else if (chr == 0) {
-      count += (pos / bucket_size_) * bucket_size_;
-      for (uint32_t cidx = 0; cidx < depth_; ++cidx) {
-        count -= bucket[cidx];
-      }
-    }
-    return count;
-  }
-
-  ~FMIndex() {
-    delete [] count_buckets_;
-  }
-
- private:
-  void Init() {
-    count_buckets_ = new uint32_t[num_buckets_ * depth_];
-    memset(count_buckets_, 0, num_buckets_ * depth_ * sizeof(uint32_t));
-
-    for (uint32_t bidx = 1; bidx < num_buckets_; ++bidx) {
-      uint32_t* curr_bucket = count_buckets_ + bidx * depth_;
-      uint32_t* prev_bucket = count_buckets_ + (bidx - 1) * depth_;
-
-      for (uint32_t cidx = 0; cidx < depth_; ++cidx) {
-        curr_bucket[cidx] = prev_bucket[cidx];
-      }
-      for (uint32_t pos = 0; pos < bucket_size_; ++pos) {
-        uint8_t chr = bwt_[(bidx - 1) * bucket_size_ + pos];
-        if (chr > 0) {
-          ++curr_bucket[chr - 1];
-        }
-      }
+  uint32_t* bucket = buckets_ + (pos / bucket_size_ * max_val_);
+  if (chr > 0) {
+    count += bucket[chr - 1];
+  } else if (chr == 0) {
+    count += (pos / bucket_size_) * bucket_size_;
+    for (uint32_t cidx = 0; cidx < max_val_; ++cidx) {
+      count -= bucket[cidx];
     }
   }
+  return count;
+}
 
-  const uint8_t* bwt_;
-  const size_t size_;
-  const size_t depth_;
-  const size_t bucket_size_;
-  const size_t num_buckets_;
-  uint32_t* count_buckets_;
-};
+
+void BucketedFMIndex::Init() {
+  memset(buckets_, 0, num_buckets_ * max_val_ * sizeof(uint32_t));
+
+  for (uint32_t bidx = 1; bidx < num_buckets_; ++bidx) {
+    uint32_t* curr_bucket = buckets_ + bidx * max_val_;
+    uint32_t* prev_bucket = buckets_ + (bidx - 1) * max_val_;
+
+    for (uint32_t cidx = 0; cidx < max_val_; ++cidx) {
+      curr_bucket[cidx] = prev_bucket[cidx];
+    }
+    const uint32_t start_idx = (bidx - 1) * bucket_size_;
+    for (uint32_t pos = 0; pos < bucket_size_ && start_idx + pos < size_; ++pos) {
+      uint8_t chr = (*bwt_)[start_idx + pos];
+      if (chr > 0) {
+        ++curr_bucket[chr - 1];
+      }
+    }
+  }
+
+  memset(char_counts_, 0, (max_val_ + 2) * sizeof(uint32_t));
+  for (uint32_t char_idx = 1; char_idx <= max_val_ + 1; ++char_idx) {
+    char_counts_[char_idx] = char_counts_[char_idx - 1] + Rank(char_idx - 1, size_);
+  }
+}
+
+
+}  // namespace overlap
