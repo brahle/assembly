@@ -1,14 +1,24 @@
+#!/usr/bin/env bash
 CXX=g++
 CFLAGS=-c -Wall -O2 -std=c++0x
 LDFLAGS=-lsais
+# Sources.
+SRCDIR=src
 SOURCES=main.cpp data.cpp fm_index.cpp suffix_array.cpp
+# Objects.
+OBJDIR=obj
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=olapper
+# Binaries.
+BINDIR=bin
+BINARIES=olapper
 
-all : $(addprefix src/, $(SOURCES)) $(EXECUTABLE)
+all : $(addprefix $(SRCDIR)/, $(SOURCES)) $(BINARIES)
 
-$(EXECUTABLE) : $(addprefix obj/, $(OBJECTS))
-	$(CXX) $^ -o bin/$@ $(LDFLAGS)
+$(BINARIES) : $(addprefix $(OBJDIR)/, $(OBJECTS))
+	$(CXX) $^ -o $(BINDIR)/$@ $(LDFLAGS)
 
-obj/%.o : src/%.cpp
+$(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	$(CXX) $(CFLAGS) $< -o $@
+
+clean :
+	rm -f $(BINDIR)/* $(OBJDIR)/*
