@@ -26,7 +26,7 @@ String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
   sa_int32_t* super_string = new sa_int32_t[bwt_size + 1];
   uint32_t ss_pos = 0;
   for (uint32_t read_idx = 0; read_idx < num_strings; ++read_idx) {
-    const Read* read = reads.get(read_idx);
+    const Read* read = reads[read_idx];
     super_string[ss_pos++] = read_idx;
     for (uint32_t chr_idx = 0; chr_idx < read->size(); ++chr_idx) {
       super_string[ss_pos++] = (*read)[chr_idx] + num_strings - 1;
