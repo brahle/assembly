@@ -13,11 +13,14 @@ DEBUG_FLAGS=-g -ggdb -pg
 NODEBUG_FLAGS=-s
 
 release: $(SOURCES) $(HEADERS) $(BUILD_NUMBER_FILE)
-	g++ $(FLAGS) $(NODEBUG_FLAGS) $(SOURCES) $(BUILD_NUMBER_LDFLAGS) -o bin/$@
+	g++ $(FLAGS) $(NODEBUG_FLAGS) $(SOURCES) -o bin/$@
 
 debug: $(SOURCES) $(HEADERS) $(BUILD_NUMBER_FILE)
-	g++ $(FLAGS) $(DEBUG_FLAGS) $(SOURCES) $(BUILD_NUMBER_LDFLAGS) -o bin/$@
+	g++ $(FLAGS) $(DEBUG_FLAGS) $(SOURCES) -o bin/$@
 
 valgrind: debug
 	valgrind bin/debug
+
+clean:
+	rm bin/*
 
