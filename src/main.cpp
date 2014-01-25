@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "data.h"
+#include "read.h"
 #include "sort.h"
 
 int main(int argc, char* argv[]) {

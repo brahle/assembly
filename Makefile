@@ -4,7 +4,7 @@ CFLAGS=-Wall -Wextra -Werror -pedantic -O2 -std=c++11
 LDFLAGS=-lsais
 # Sources.
 SRCDIR=src
-SOURCES=main.cpp data.cpp fm_index.cpp overlap.cpp sort.cpp suffix_array.cpp suffix_filter.cpp
+SOURCES=main.cpp read.cpp fm_index.cpp overlap.cpp sort.cpp suffix_array.cpp suffix_filter.cpp
 # Objects.
 OBJDIR=obj
 OBJECTS=$(SOURCES:.cpp=.o)

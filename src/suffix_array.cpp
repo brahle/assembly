@@ -2,7 +2,7 @@
 
 #include <sais.h>
 
-#include "data.h"
+#include "read.h"
 #include "suffix_array.h"
 
 

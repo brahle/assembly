@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "data.h"
+#include "read.h"
 #include "fm_index.h"
 
 

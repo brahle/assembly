@@ -1,5 +1,5 @@
-#ifndef OVERLAP_DATA_H_
-#define OVERLAP_DATA_H_
+#ifndef OVERLAP_READ_H_
+#define OVERLAP_READ_H_
 
 #include <stdio.h>
 #include <stdint.h>
@@ -62,4 +62,4 @@ ReadSet* ReadFasta(FILE* fd);
 
 }  // namespace overlap
 
-#endif  // OVERLAP_DATA_H_
+#endif  // OVERLAP_READ_H_

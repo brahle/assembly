@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "data.h"
+#include "read.h"
 
 
 namespace overlap {
