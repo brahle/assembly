@@ -12,14 +12,20 @@ class String;
 
 class FMIndex {
  public:
-  FMIndex();
+  FMIndex(const String* bwt, size_t max_val);
   virtual ~FMIndex();
 
-  virtual size_t size() const = 0;
+  // Accessors.
+  size_t size() const;
+  size_t max_val() const;
   // Return count of values less than 'chr' in complete BWT.
   virtual uint32_t Less(uint8_t chr) const = 0;
   // Return count of values equal to 'chr' in first 'pos' values of BWT.
   virtual uint32_t Rank(uint8_t chr, uint32_t pos) const = 0;
+
+ protected:
+  const size_t size_;
+  const size_t max_val_;
 };
 
 class BucketedFMIndex : public FMIndex {
@@ -36,9 +42,6 @@ class BucketedFMIndex : public FMIndex {
 
   // BWT string and it's size.
   const std::unique_ptr<const String> bwt_;
-  const size_t size_;
-  // Maximal value in BWT.
-  const size_t max_val_;
   // Cumulative sum of total char counts.
   uint32_t* const char_counts_;
   // Bucket count data.

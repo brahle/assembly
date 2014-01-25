@@ -7,24 +7,40 @@
 namespace overlap {
 
 
-FMIndex::FMIndex() {}
+FMIndex::FMIndex(
+    const String* bwt,
+    size_t max_val)
+    : size_(bwt->size()), max_val_(max_val) {
+}
 
-FMIndex::~FMIndex() {}
+FMIndex::~FMIndex() {
+}
 
-BucketedFMIndex::BucketedFMIndex(const String* bwt, size_t max_val, size_t bucket_size)
-  : FMIndex(),
-    bwt_(bwt),
-    size_(bwt_->size()),
-    max_val_(max_val),
-    char_counts_(new uint32_t[max_val_ + 2]),
-    bucket_size_(bucket_size),
-    num_buckets_((size_ - 1) / bucket_size_ + 2),
-    buckets_(new uint32_t[num_buckets_ * max_val_]) {}
+size_t FMIndex::size() const {
+  return size_;
+}
+
+size_t FMIndex::max_val() const {
+  return max_val_;
+}
+
+BucketedFMIndex::BucketedFMIndex(
+    const String* bwt,
+    size_t max_val,
+    size_t bucket_size)
+    : FMIndex(bwt, max_val),
+      bwt_(bwt),
+      char_counts_(new uint32_t[max_val_ + 2]),
+      bucket_size_(bucket_size),
+      num_buckets_((size_ - 1) / bucket_size_ + 2),
+      buckets_(new uint32_t[num_buckets_ * max_val_]) {
+}
 
 BucketedFMIndex::~BucketedFMIndex() {
   delete [] char_counts_;
   delete [] buckets_;
 }
+
 
 uint32_t BucketedFMIndex::Less(uint8_t chr) const {
   return char_counts_[chr];

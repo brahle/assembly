@@ -15,11 +15,11 @@ namespace overlap {
 
 
 SuffixFilter::SuffixFilter(
-    const FMIndex& fm_index,
+    const FMIndex& fmi,
     const UintArray& read_order,
     double error_rate,
     size_t min_overlap_size)
-    : fm_index_(fm_index),
+    : fmi_(fmi),
       read_order_(read_order),
       min_overlap_size_(min_overlap_size),
       factor_size_(SuffixFilter::FactorSize(error_rate, min_overlap_size)) {
@@ -38,81 +38,125 @@ size_t SuffixFilter::FactorSize(double error_rate, size_t min_overlap_size) {
 }
 
 BFSSuffixFilter::BFSSuffixFilter(
-    const FMIndex& fm_index,
+    const FMIndex& fmi,
     const UintArray& read_order,
     double error_rate,
     size_t min_overlap_size)
-    : SuffixFilter(fm_index, read_order, error_rate, min_overlap_size) {
+    : SuffixFilter(fmi, read_order, error_rate, min_overlap_size) {
 }
 
 BFSSuffixFilter::~BFSSuffixFilter() {
 }
 
-OverlapSet* BFSSuffixFilter::FindCandidates(const Read& read) const {
+OverlapSet* BFSSuffixFilter::FindCandidates(const Read& read) {
   if (read.size() < min_overlap_size_) {
     return nullptr;
   }
 
   const size_t read_size = read.size();
   std::unique_ptr<OverlapSet> overlaps(new OverlapSet(1 << 10));
+  overlaps_ = overlaps.get();
 
   for (uint32_t pos = read_size - 1; pos + 1 >= factor_size_; pos -= factor_size_) {
-    BFS(read, pos, ((size_t)pos == read_size - 1 ? 1 : 0), overlaps.get());
+    BFS(read, pos, ((size_t)pos == read_size - 1 ? 1 : 0));
   }
 
   return overlaps.release();
 }
 
-namespace {
+std::size_t BFSSuffixFilter::state_hash::operator()(const State& k) const {
+  return (std::hash<uint32_t>()(std::get<0>(k)) ^
+          std::hash<uint32_t>()(std::get<1>(k)) ^
+          std::hash<uint32_t>()(std::get<2>(k)));
+}
 
-typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
-
-struct state_hash : public std::unary_function<State, std::size_t> {
-  std::size_t operator()(const State& k) const {
-    return (std::hash<uint32_t>()(std::get<0>(k)) ^
-            std::hash<uint32_t>()(std::get<1>(k)) ^
-            std::hash<uint32_t>()(std::get<2>(k)));
-  }
-};
-
-struct state_equal : public std::binary_function<State, State, bool> {
-  bool operator()(const State& lhs, const State& rhs) const {
-    return (std::get<0>(lhs) == std::get<0>(rhs) &&
-            std::get<1>(lhs) == std::get<1>(rhs) &&
-            std::get<2>(lhs) == std::get<2>(rhs));
-  }
-};
-
+bool BFSSuffixFilter::state_equal::operator()(const State& lhs, const State& rhs) const {
+  return (std::get<0>(lhs) == std::get<0>(rhs) &&
+          std::get<1>(lhs) == std::get<1>(rhs) &&
+          std::get<2>(lhs) == std::get<2>(rhs));
 }
 
 void BFSSuffixFilter::BFS(
     const Read& read,
-    size_t start_pos,
-    size_t max_error,
-    OverlapSet* overlaps) const {
+    uint32_t start_pos,
+    uint32_t max_error) {
 
-  if (read.size() && overlaps) {
-    overlaps = nullptr;
-    start_pos -= max_error;
-  }
+  BFSQueue queues[2];
+  state_dist_.clear();
 
-  std::queue<State> Q[2];
-  std::unordered_map<State, uint32_t, state_hash, state_equal> E;
+  State start_state = std::make_tuple(0, fmi_.size(), 0);
+  queues[0].push(start_state);
+  state_dist_[start_state] = max_error;
 
-  State start_state = std::make_tuple(0, fm_index_.size(), 0);
+  for (size_t qid = 0; !queues[qid].empty(); qid = 1 - qid) {
+    std::queue<State>& curr = queues[qid];
+    std::queue<State>& next = queues[1 - qid];
 
-  Q[0].push(start_state);
-  E[start_state] = max_error;
-
-  for (size_t qid = 0; !Q[qid].empty(); qid = 1 - qid) {
-    std::queue<State>& curr = Q[qid];
-    std::queue<State>& next = Q[1 - qid];
-
+    uint32_t low, high, pos, error, value;
     while(!curr.empty()) {
-      next.push(std::make_tuple(1, 2, 3));
+      std::tie(low, high, pos) = curr.front();
+      error = state_dist_[curr.front()];
+
+      CheckOverlaps(low, high, start_pos, pos, read.size());
+
+      if (pos > 0 && !(pos % factor_size_)) {
+        error += 1;
+      }
+
+      if (error > 0 && pos <= start_pos) {
+        Queue(low, high, pos + 1, error - 1, next);
+      }
+
+      value = read[start_pos - pos];
+      uint32_t newlow, newhigh;
+      for (uint8_t cix = 1; cix <= fmi_.max_val(); ++cix) {
+        newlow = fmi_.Less(cix) + fmi_.Rank(cix, low);
+        newhigh = fmi_.Less(cix) + fmi_.Rank(cix, high);
+        if (cix == value && pos <= start_pos) {
+          Queue(newlow, newhigh, pos + 1, error, curr);
+        } else if (error > 0 && pos <= start_pos) {
+          Queue(newlow, newhigh, pos + 1, error - 1, next);
+        } else if (error > 0) {
+          Queue(newlow, newhigh, pos, error - 1, next);
+        }
+      }
+
       curr.pop();
     }
   }
 }
+
+void BFSSuffixFilter::CheckOverlaps(
+    uint32_t low,
+    uint32_t high,
+    uint32_t start,
+    uint32_t pos,
+    size_t read_size) {
+
+  size_t overlap_size = pos + read_size - start - 1;
+  if (pos >= factor_size_ && overlap_size >= min_overlap_size_) {
+    low = fmi_.Rank(0, low);
+    high = fmi_.Rank(0, high);
+    for (uint32_t idx = low; idx < high; ++idx) {
+      overlaps_->Add(
+          new Overlap(0, read_order_[idx], overlap_size, overlap_size, Overlap::Type::EB, 0));
+    }
+  }
+}
+
+void BFSSuffixFilter::Queue(
+    uint32_t low,
+    uint32_t high,
+    uint32_t pos,
+    uint32_t error,
+    BFSQueue& queue) {
+
+  State new_state(low, high, pos);
+  if (state_dist_.find(new_state) != state_dist_.end()) {
+    queue.push(new_state);
+    state_dist_[new_state] = error;
+  }
+}
+
 
 }  // namespace overlap
