@@ -13,33 +13,48 @@ namespace overlap {
 
 class FMIndex;
 class OverlapSet;
-class ReadSet;
+class Read;
 
 class SuffixFilter {
  public:
-  SuffixFilter(double error_rate, size_t min_overlap_size);
+  SuffixFilter(
+      const FMIndex& fm_index,
+      const UintArray& read_order,
+      double error_rate,
+      size_t min_overlap_size);
+
   virtual ~SuffixFilter();
 
-  virtual OverlapSet* FindCandidates(
-      const ReadSet& read_set,
-      const FMIndex& fm_index,
-      const IntArray& read_order) const = 0;
+  virtual OverlapSet* FindCandidates(const Read& read) const = 0;
+
+  static size_t FactorSize(double error_rate, size_t min_overlap_size);
 
  protected:
-  const double error_rate_;
+  const FMIndex& fm_index_;
+  const UintArray& read_order_;
   const size_t min_overlap_size_;
+  const size_t factor_size_;
 };
 
 
 class BFSSuffixFilter : public SuffixFilter {
  public:
-  BFSSuffixFilter(double error_rate, size_t min_overlap_size);
+  BFSSuffixFilter(
+      const FMIndex& fm_index,
+      const UintArray& read_order,
+      double error_rate,
+      size_t min_overlap_size);
+
   ~BFSSuffixFilter();
 
-  OverlapSet* FindCandidates(
-      const ReadSet& read_set,
-      const FMIndex& fm_index,
-      const IntArray& read_order) const;
+  OverlapSet* FindCandidates(const Read& read) const;
+
+ private:
+  void BFS(
+      const Read& read,
+      size_t start_pos,
+      size_t max_error,
+      OverlapSet* overlaps) const;
 };
 
 }  // namespace overlap
