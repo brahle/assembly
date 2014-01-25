@@ -12,11 +12,12 @@ int main(int argc, char* argv[]) {
   }
 
   FILE* in = fopen(argv[1], "r");
-  std::unique_ptr<overlap::ReadSet> read_set(overlap::ReadFasta(in));
+  std::unique_ptr<const overlap::ReadSet> read_set(overlap::ReadFasta(in));
   std::vector<uint32_t> read_order = overlap::RadixStringOrder(*read_set, 256);
 
+  return 0;
   for (uint32_t rix = 0; rix < read_set->size(); ++rix) {
-    printf("%s\n", read_set->get(read_order[rix])->data());
+    printf("%s\n", (*read_set)[read_order[rix]]->data());
   }
 
   return 0;

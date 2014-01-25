@@ -20,7 +20,7 @@ String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
   size_t bwt_size = num_strings;
 
   for (uint32_t read_idx = 0; read_idx < num_strings; ++read_idx) {
-    bwt_size += reads.get(read_idx)->size();
+    bwt_size += reads[read_idx]->size();
   }
 
   sa_int32_t* super_string = new sa_int32_t[bwt_size + 1];

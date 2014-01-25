@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/types.h>
-
 #include <vector>
+
+#include "util.h"
 
 
 namespace overlap {
@@ -19,10 +20,10 @@ public:
   virtual ~String();
 
   const uint8_t* data() const;
-  const size_t size() const;
+  size_t size() const;
 
-  const uint8_t& operator[] (const uint32_t idx) const;
-  const bool operator< (const String& other) const;
+  const uint8_t& operator[](const uint32_t idx) const;
+  bool operator< (const String& other) const;
 
 private:
   const uint8_t* data_;
@@ -45,12 +46,13 @@ public:
   ReadSet(size_t capacity);
   ~ReadSet();
 
-  void add(Read* read);
+  void Add(Read* read);
+  const Read* Get(uint32_t read_idx) const;
 
-  const size_t size() const;
+  size_t size() const;
 
-  const Read* get(uint32_t read_idx) const;
-  Read* const& operator[] (const uint32_t idx) const;
+  Read* const& operator[](const uint32_t idx) const;
+  Read*& operator[](const uint32_t idx);
 
 private:
   std::vector<Read*> reads_;

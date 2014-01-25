@@ -15,6 +15,6 @@ std::vector<uint32_t> STLStringOrder(const ReadSet& strings);
 std::vector<uint32_t> RadixStringOrder(const ReadSet& strings, const size_t max_val);
 
 
-};
+}  // namespace overlap
 
 #endif  // OVERLAP_SORT_H

@@ -62,12 +62,12 @@ std::vector<uint32_t> RadixStringOrder(const ReadSet& reads, const size_t max_va
   const uint32_t max_size = reads[order[num_reads - 2]]->size();
   uint32_t start_idx = num_reads - 2;
 
-  uint32_t char_count[max_val + 1];
+  uint32_t* char_count = new uint32_t[max_val + 1];
   std::vector<uint32_t> tmpord(num_reads);
 
   for (int32_t pos = max_size - 1; pos >= 0; --pos) {
     // Move the index.
-    while (start_idx > 0 && reads[order[start_idx - 1]]->size() > pos) {
+    while (start_idx > 0 && reads[order[start_idx - 1]]->size() > (uint32_t)pos) {
       --start_idx;
     }
     // Calculate character bucket sizes.
@@ -92,6 +92,7 @@ std::vector<uint32_t> RadixStringOrder(const ReadSet& reads, const size_t max_va
     std::copy(tmpord.begin() + start_idx, tmpord.end(), order.begin() + start_idx);
   }
 
+  delete[] char_count;
   return order;
 }
 

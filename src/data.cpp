@@ -28,7 +28,7 @@ const uint8_t* String::data() const {
   return data_;
 }
 
-const size_t String::size() const {
+size_t String::size() const {
   return size_;
 }
 
@@ -36,7 +36,7 @@ const uint8_t& String::operator[] (const uint32_t idx) const {
   return data_[idx];
 }
 
-const bool String::operator< (const String& other) const {
+bool String::operator< (const String& other) const {
   return strcmp((const char*)data_, (const char*)other.data_) < 0;
 }
 
@@ -61,19 +61,23 @@ ReadSet::~ReadSet() {
   }
 }
 
-void ReadSet::add(Read* read) {
+void ReadSet::Add(Read* read) {
   reads_.push_back(read);
 }
 
-const size_t ReadSet::size() const {
-  return reads_.size();
-}
-
-const Read* ReadSet::get(uint32_t read_idx) const {
+const Read* ReadSet::Get(uint32_t read_idx) const {
   return reads_[read_idx];
 }
 
+size_t ReadSet::size() const {
+  return reads_.size();
+}
+
 Read* const& ReadSet::operator[] (const uint32_t idx) const {
+  return reads_[idx];
+}
+
+Read*& ReadSet::operator[] (const uint32_t idx) {
   return reads_[idx];
 }
 
@@ -84,10 +88,32 @@ ReadSet* ReadFasta(FILE* fd) {
   while (fgets(buff, sizeof buff, fd)) {
     assert(fgets(buff, sizeof buff, fd));
     size_t size = strlen(buff);
+    --size;
     uint8_t* read_data = new uint8_t[size];
-    buff[size - 1] = '\0';
+    buff[size] = '\0';
     strcpy((char*)read_data, buff);
-    read_set->add(new Read(read_data, size));
+    for (uint32_t pos = 0; pos < size; ++pos) {
+      uint8_t fc = 0;
+      switch (read_data[pos]) {
+      case 'A':
+        fc = 1;
+        break;
+      case 'C':
+        fc = 2;
+        break;
+      case 'G':
+        fc = 3;
+        break;
+      case 'T':
+        fc = 4;
+        break;
+      default:
+        assert(0);
+        break;
+      }
+      read_data[pos] = fc;
+    }
+    read_set->Add(new Read(read_data, size));
   }
 
   return read_set;

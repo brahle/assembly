@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 CXX=g++
-CFLAGS=-c -Wall -O2 -std=c++0x
+CFLAGS=-Wall -Wextra -Werror -pedantic -O2 -std=c++11
 LDFLAGS=-lsais
 # Sources.
 SRCDIR=src
-SOURCES=main.cpp data.cpp fm_index.cpp suffix_array.cpp sort.cpp
+SOURCES=main.cpp data.cpp fm_index.cpp overlap.cpp sort.cpp suffix_array.cpp suffix_filter.cpp
 # Objects.
 OBJDIR=obj
 OBJECTS=$(SOURCES:.cpp=.o)
@@ -18,7 +18,7 @@ $(BINARIES) : $(addprefix $(OBJDIR)/, $(OBJECTS))
 	$(CXX) $^ -o $(BINDIR)/$@ $(LDFLAGS)
 
 $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	$(CXX) $(CFLAGS) $< -o $@
+	$(CXX) $(CFLAGS) $< -c -o $@
 
 clean :
 	rm -f $(BINDIR)/* $(OBJDIR)/*
