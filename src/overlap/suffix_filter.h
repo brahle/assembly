@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#include <queue>
+#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 #include "util.h"
@@ -25,9 +28,16 @@ class SuffixFilter {
 
   virtual ~SuffixFilter();
 
-  virtual OverlapSet* FindCandidates(const Read& read) const = 0;
+  virtual void FindCandidates(
+      const Read& read,
+      OverlapSet* overlaps) = 0;
 
-  static size_t FactorSize(double error_rate, size_t min_overlap_size);
+  virtual OverlapSet* FilterContained(
+      OverlapSet* overlaps) = 0;
+
+  static size_t FactorSize(
+      double error_rate,
+      size_t min_overlap_size);
 
  protected:
   const FMIndex& fmi_;
@@ -47,7 +57,12 @@ class BFSSuffixFilter : public SuffixFilter {
 
   ~BFSSuffixFilter();
 
-  OverlapSet* FindCandidates(const Read& read);
+  void FindCandidates(
+      const Read& read,
+      OverlapSet* overlaps);
+
+  OverlapSet* FilterContained(
+      OverlapSet* overlaps);
 
  private:
   typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
@@ -69,10 +84,12 @@ class BFSSuffixFilter : public SuffixFilter {
       uint32_t max_error);
 
   void CheckOverlaps(
+      uint32_t id,
       uint32_t low,
       uint32_t high,
       uint32_t start,
       uint32_t pos,
+      uint32_t error,
       size_t read_size);
 
   void Queue(
@@ -82,6 +99,7 @@ class BFSSuffixFilter : public SuffixFilter {
       uint32_t error,
       BFSQueue& queue);
 
+  std::unordered_set<uint32_t> contained_;
   BFSMap state_dist_;
   OverlapSet* overlaps_;
 

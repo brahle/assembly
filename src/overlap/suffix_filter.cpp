@@ -48,20 +48,27 @@ BFSSuffixFilter::BFSSuffixFilter(
 BFSSuffixFilter::~BFSSuffixFilter() {
 }
 
-OverlapSet* BFSSuffixFilter::FindCandidates(const Read& read) {
+void BFSSuffixFilter::FindCandidates(
+    const Read& read,
+    OverlapSet* overlaps) {
   if (read.size() < min_overlap_size_) {
-    return nullptr;
+    return;
   }
 
   const size_t read_size = read.size();
-  std::unique_ptr<OverlapSet> overlaps(new OverlapSet(1 << 10));
-  overlaps_ = overlaps.get();
+  overlaps_ = overlaps;
 
   for (uint32_t pos = read_size - 1; pos + 1 >= factor_size_; pos -= factor_size_) {
     BFS(read, pos, ((size_t)pos == read_size - 1 ? 1 : 0));
   }
+}
 
-  return overlaps.release();
+OverlapSet* BFSSuffixFilter::FilterContained(
+    OverlapSet* overlaps) {
+  if (overlaps) {
+    return nullptr;
+  }
+  return nullptr;
 }
 
 std::size_t BFSSuffixFilter::state_hash::operator()(const State& k) const {
@@ -97,7 +104,7 @@ void BFSSuffixFilter::BFS(
       std::tie(low, high, pos) = curr.front();
       error = state_dist_[curr.front()];
 
-      CheckOverlaps(low, high, start_pos, pos, read.size());
+      CheckOverlaps(read.id(), low, high, start_pos, pos, error, read.size());
 
       if (pos > 0 && !(pos % factor_size_)) {
         error += 1;
@@ -127,10 +134,12 @@ void BFSSuffixFilter::BFS(
 }
 
 void BFSSuffixFilter::CheckOverlaps(
+    uint32_t id,
     uint32_t low,
     uint32_t high,
     uint32_t start,
     uint32_t pos,
+    uint32_t error,
     size_t read_size) {
 
   size_t overlap_size = pos + read_size - start - 1;
@@ -139,7 +148,7 @@ void BFSSuffixFilter::CheckOverlaps(
     high = fmi_.Rank(0, high);
     for (uint32_t idx = low; idx < high; ++idx) {
       overlaps_->Add(
-          new Overlap(0, read_order_[idx], overlap_size, overlap_size, Overlap::Type::EB, 0));
+          new Overlap(id, read_order_[idx], overlap_size, overlap_size, Overlap::Type::EB, error));
     }
   }
 }
@@ -152,7 +161,7 @@ void BFSSuffixFilter::Queue(
     BFSQueue& queue) {
 
   State new_state(low, high, pos);
-  if (state_dist_.find(new_state) != state_dist_.end()) {
+  if (state_dist_.find(new_state) == state_dist_.end()) {
     queue.push(new_state);
     state_dist_[new_state] = error;
   }

@@ -18,7 +18,8 @@ const uint8_t* ReverseComplement(const uint8_t* data, size_t size) {
 }
 
 String::String(const uint8_t* data, size_t size)
-    : data_(data), size_(size) {}
+    : data_(data), size_(size) {
+}
 
 String::~String() {
   delete[] data_;
@@ -40,8 +41,11 @@ bool String::operator< (const String& other) const {
   return strcmp((const char*)data_, (const char*)other.data_) < 0;
 }
 
-Read::Read(const uint8_t* data, size_t size)
-    : String(data, size), data_rc_(ReverseComplement(data, size)) {}
+Read::Read(const uint8_t* data, size_t size, uint32_t id)
+    : String(data, size),
+      data_rc_(ReverseComplement(data, size)),
+      id_(id) {
+}
 
 Read::~Read() {
   delete[] data_rc_;
@@ -49,6 +53,10 @@ Read::~Read() {
 
 const uint8_t* Read::data_rc() const {
   return data_rc_;
+}
+
+uint32_t Read::id() const {
+  return id_;
 }
 
 ReadSet::ReadSet(size_t capacity) {
@@ -81,17 +89,19 @@ Read*& ReadSet::operator[] (const uint32_t idx) {
   return reads_[idx];
 }
 
-ReadSet* ReadFasta(FILE* fd) {
+ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
   char buff[100000];
   ReadSet* read_set = new ReadSet(1 << 16);
 
+  uint32_t id = 0;
   while (fgets(buff, sizeof buff, fd)) {
     assert(fgets(buff, sizeof buff, fd));
-    size_t size = strlen(buff);
-    --size;
+    size_t size = strlen(buff) - 1;
+
     uint8_t* read_data = new uint8_t[size];
     buff[size] = '\0';
     strcpy((char*)read_data, buff);
+
     for (uint32_t pos = 0; pos < size; ++pos) {
       uint8_t fc = 0;
       switch (read_data[pos]) {
@@ -113,7 +123,9 @@ ReadSet* ReadFasta(FILE* fd) {
       }
       read_data[pos] = fc;
     }
-    read_set->Add(new Read(read_data, size));
+    if (size >= min_read_size) {
+      read_set->Add(new Read(read_data, size, id++));
+    }
   }
 
   return read_set;

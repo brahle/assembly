@@ -32,13 +32,15 @@ private:
 
 class Read : public String {
 public:
-  Read(const uint8_t* data, size_t size);
+  Read(const uint8_t* data, size_t size, uint32_t id);
   ~Read();
 
   const uint8_t* data_rc() const;
+  uint32_t id() const;
 
 private:
   const uint8_t* data_rc_;
+  const uint32_t id_;
 };
 
 class ReadSet {
@@ -56,9 +58,11 @@ public:
 
 private:
   std::vector<Read*> reads_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReadSet);
 };
 
-ReadSet* ReadFasta(FILE* fd);
+ReadSet* ReadFasta(FILE* fd, size_t min_read_size);
 
 }  // namespace overlap
 
