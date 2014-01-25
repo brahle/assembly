@@ -3,13 +3,13 @@ CXX=g++
 CFLAGS=-Wall -Wextra -Werror -pedantic -O2 -std=c++11
 LDFLAGS=-lsais
 # Sources.
-SRCDIR=src
+SRCDIR=.
 SOURCES=main.cpp read.cpp fm_index.cpp overlap.cpp sort.cpp suffix_array.cpp suffix_filter.cpp
 # Objects.
-OBJDIR=obj
+OBJDIR=../../obj
 OBJECTS=$(SOURCES:.cpp=.o)
 # Binaries.
-BINDIR=bin
+BINDIR=../../bin
 BINARIES=olapper
 
 all : $(addprefix $(SRCDIR)/, $(SOURCES)) $(BINARIES)
