@@ -1,7 +1,8 @@
 #ifndef OVERLAP_SUFFIX_FILTER_H_
 #define OVERLAP_SUFFIX_FILTER_H_
 
-#include <cstdint>
+#include <stdint.h>
+#include <sys/types.h>
 #include <vector>
 
 #include "util.h"
@@ -16,18 +17,30 @@ class ReadSet;
 
 class SuffixFilter {
  public:
-  SuffixFilter(double error_rate);
-  virtual ~SuffixFilter() = 0;
+  SuffixFilter(double error_rate, size_t min_overlap_size);
+  virtual ~SuffixFilter();
 
   virtual OverlapSet* FindCandidates(
       const ReadSet& read_set,
       const FMIndex& fm_index,
-      const IntArray& read_order) = 0;
+      const IntArray& read_order) const = 0;
 
- private:
+ protected:
   const double error_rate_;
+  const size_t min_overlap_size_;
 };
 
+
+class BFSSuffixFilter : public SuffixFilter {
+ public:
+  BFSSuffixFilter(double error_rate, size_t min_overlap_size);
+  ~BFSSuffixFilter();
+
+  OverlapSet* FindCandidates(
+      const ReadSet& read_set,
+      const FMIndex& fm_index,
+      const IntArray& read_order) const;
+};
 
 }  // namespace overlap
 
