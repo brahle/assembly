@@ -96,34 +96,35 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
   uint32_t id = 0;
   while (fgets(buff, sizeof buff, fd)) {
     assert(fgets(buff, sizeof buff, fd));
-    size_t size = strlen(buff) - 1;
+    size_t size = strlen(buff);
 
-    uint8_t* read_data = new uint8_t[size];
-    buff[size] = '\0';
-    strcpy((char*)read_data, buff);
-
-    for (uint32_t pos = 0; pos < size; ++pos) {
-      uint8_t fc = 0;
-      switch (read_data[pos]) {
-      case 'A':
-        fc = 1;
-        break;
-      case 'C':
-        fc = 2;
-        break;
-      case 'G':
-        fc = 3;
-        break;
-      case 'T':
-        fc = 4;
-        break;
-      default:
-        assert(0);
-        break;
-      }
-      read_data[pos] = fc;
-    }
     if (size >= min_read_size) {
+      uint8_t* read_data = new uint8_t[size];
+      buff[size - 1] = '\0';
+      strcpy((char*)read_data, buff);
+
+      for (uint32_t pos = 0; pos < size - 1; ++pos) {
+        uint8_t fc = 0;
+        switch (read_data[pos]) {
+        case 'A':
+          fc = 1;
+          break;
+        case 'C':
+          fc = 2;
+          break;
+        case 'G':
+          fc = 3;
+          break;
+        case 'T':
+          fc = 4;
+          break;
+        default:
+          assert(0);
+          break;
+        }
+        read_data[pos] = fc;
+      }
+
       read_set->Add(new Read(read_data, size, id++));
     }
   }

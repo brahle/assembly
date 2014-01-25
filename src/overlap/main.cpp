@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "fm_index.h"
+#include "overlap.h"
 #include "read.h"
 #include "sort.h"
 #include "suffix_array.h"
@@ -20,16 +21,18 @@ int main(int argc, char* argv[]) {
   size_t min_read_size = 60;
   size_t min_overlap_size = 40;
 
-  FILE* in = fopen(argv[1], "r");
 
   time_t start = clock(), prev, curr;
 
   printf("Reading genome data.\n");
   prev = clock();
+  FILE* in = fopen(argv[1], "r");
   std::unique_ptr<overlap::ReadSet> read_set(
       overlap::ReadFasta(in, min_read_size));
+  fclose(in);
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
+  const size_t num_reads = read_set->size();
 
   printf("Building BWT.\n");
   prev = clock();
@@ -43,7 +46,7 @@ int main(int argc, char* argv[]) {
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
 
-  printf("Building FM-index.\n"0);
+  printf("Building FM-index.\n");
   prev = clock();
   std::unique_ptr<overlap::FMIndex> fmi(
       new overlap::BucketedFMIndex(bwt, 4, 128));
@@ -52,7 +55,7 @@ int main(int argc, char* argv[]) {
 
   printf("Sorting reads.\n"); fflush(stdout);
   prev = clock();
-  overlap::UintArray read_order = overlap::RadixStringOrder(*read_set, 4);
+  overlap::UintArray read_order = overlap::STLStringOrder(*read_set);
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
 
@@ -61,7 +64,10 @@ int main(int argc, char* argv[]) {
   std::unique_ptr<overlap::SuffixFilter> sufter(
       new overlap::BFSSuffixFilter(*fmi, read_order, error_rate, min_overlap_size));
 
-  for (uint32_t read_idx = 0; read_idx < read_set->size(); ++read_idx) {
+  std::unique_ptr<overlap::OverlapSet> overlaps(
+      new overlap::OverlapSet(num_reads * num_reads / 2));
+  for (uint32_t read_idx = 0; read_idx < num_reads; ++read_idx) {
+    sufter->FindCandidates(*read_set->Get(read_idx), overlaps.get());
   }
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);

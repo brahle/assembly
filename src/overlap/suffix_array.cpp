@@ -35,6 +35,7 @@ String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
   super_string[bwt_size] = '\0';
 
   int* bwt32 = new int[bwt_size + 1];
+  bwt32[bwt_size] = '\0';
 
   int32_t* A = new int32_t[bwt_size + 1];
   int32_t ret = sais_int_bwt(super_string, bwt32, A, (int)bwt_size, num_strings + depth);

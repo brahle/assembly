@@ -114,15 +114,17 @@ void BFSSuffixFilter::BFS(
         Queue(low, high, pos + 1, error - 1, next);
       }
 
-      value = read[start_pos - pos];
       uint32_t newlow, newhigh;
       for (uint8_t cix = 1; cix <= fmi_.max_val(); ++cix) {
         newlow = fmi_.Less(cix) + fmi_.Rank(cix, low);
         newhigh = fmi_.Less(cix) + fmi_.Rank(cix, high);
-        if (cix == value && pos <= start_pos) {
-          Queue(newlow, newhigh, pos + 1, error, curr);
-        } else if (error > 0 && pos <= start_pos) {
-          Queue(newlow, newhigh, pos + 1, error - 1, next);
+        if (pos <= start_pos) {
+          value = read[start_pos - pos];
+          if (cix == value) {
+            Queue(newlow, newhigh, pos + 1, error, curr);
+          } else if (error > 0) {
+            Queue(newlow, newhigh, pos + 1, error - 1, next);
+          }
         } else if (error > 0) {
           Queue(newlow, newhigh, pos, error - 1, next);
         }
