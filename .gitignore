@@ -1,2 +1,8 @@
 bin/*
 obj/*
+*~
+\#*#
+*.bak
+.*.swp
+callgrind.out.*
+*.out
