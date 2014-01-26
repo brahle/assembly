@@ -1,6 +1,7 @@
 #ifndef _UNITIGGING_H_
 #define _UNITIGGING_H_
 
+#include <overlap/overlap.h>
 #include <overlap/read.h>
 
 namespace layout {

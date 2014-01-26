@@ -10,6 +10,8 @@ VPATH=src:src/layout:src/overlap:bin
 HPP=util.h
 
 OBJ=fm_index.o overlap.o read.o sort.o suffix_array.o suffix_filter.o util.o
+OBJ_SPECIAL=sais.o
+ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
 TEST=
 
@@ -37,18 +39,21 @@ $(OBJ): %.o: %.cpp %.h $(patsubst %,%pp,$(HPP))
 	@/bin/echo -e "\e[34m  CC $@ \033[0m"
 	@$(CC) -c $< -o bin/$@
 
+sais.o:	src/overlap/sais.c
+	@$(CCE) -fomit-frame-pointer -DNDEBUG  -c -o bin/$@ $^
+
 # build rule for test executables.
-$(TEST): %: src/test/%.cpp $(OBJ)
+$(TEST): %: src/test/%.cpp $(ALL_OBJ)
 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
-	@$(CC) $< $(patsubst %,bin/%,$(OBJ)) -o bin/$@
+	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
 
 # build rule for main executables.
-$(EXE): %: src/%.cpp $(OBJ)
+$(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
-	@$(CC) $< $(patsubst %,bin/%,$(OBJ)) -o bin/$@
+	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
 
 valgrind: $(EXE)
 	valgrind bin/$(EXE)
 
-run: $(EXE)
+run: $(EXE) $(BUILD_NUMBER_FILE)
 	@bin/$(EXE)

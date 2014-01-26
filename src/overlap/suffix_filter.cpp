@@ -2,7 +2,7 @@
 #include "overlap.h"
 #include "read.h"
 #include "suffix_filter.h"
-#include "util.h"
+#include "util.hpp"
 
 
 namespace overlap {
