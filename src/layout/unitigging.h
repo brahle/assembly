@@ -1,23 +1,30 @@
 #ifndef _UNITIGGING_H_
 #define _UNITIGGING_H_
 
-#include <overlap/overlap.h>
 #include <overlap/read.h>
+#include <overlap/overlap.h>
+
+#include <layout/better_overlap.h>
 
 namespace layout {
 
 class Unitigging {
  public:
-  Unitigging(const overlap::ReadSet& reads);
+  Unitigging(
+      overlap::ReadSet* reads,
+      overlap::OverlapSet* overlaps);
   virtual ~Unitigging();
 
   void start();
 
  private:
+  overlap::ReadSet* reads_;
+  overlap::OverlapSet* orig_overlaps_;
+  layout::BetterOverlapSet overlaps_;
+
   void removeContainmentEdges();
   void removeTransitiveEdges();
-  void connectEdges();
-  const overlap::ReadSet& reads_;
+  void makeContigs();
 };
 
 }

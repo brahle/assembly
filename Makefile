@@ -9,7 +9,7 @@ VPATH=src:src/layout:src/overlap:bin
 # they are changed.
 HPP=util.h
 
-OBJ=fm_index.o overlap.o read.o sort.o suffix_array.o suffix_filter.o util.o
+OBJ=fm_index.o overlap.o better_overlap.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o
 OBJ_SPECIAL=sais.o
 ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
@@ -24,7 +24,7 @@ ASORTED_FLAGS=-std=c++11
 WARINIG_FLAGS=-Wall -Wextra -pedantic -Werror
 FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDFLAGS)
 DEBUG_FLAGS=-g -ggdb -pg
-NODEBUG_FLAGS=-s -O3
+NODEBUG_FLAGS=-s -O3 -DNDEBUG
 
 CC=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
 CCE=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)

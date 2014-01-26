@@ -1,8 +1,9 @@
-#include <overlap/read.h>
-#include <layout/union_find.h>
 #include <layout/unitigging.h>
 
 int main() {
-  layout::UnionFind uf(100);
+  overlap::ReadSet rs(10);
+  overlap::OverlapSet os(100);
+  layout::Unitigging u(&rs, &os);
+
   return 0;
 }
