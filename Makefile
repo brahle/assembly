@@ -7,13 +7,13 @@ VPATH=src:src/layout:src/overlap:bin
 # but *.hpp files exists. it means that they contain template
 # implementation and everything must be recompiled when
 # they are changed.
-HPP=
+HPP=util.h
 
-OBJ=union_find.o unitigging.o data.o
+OBJ=fm_index.o overlap.o read.o sort.o suffix_array.o suffix_filter.o util.o
 
 TEST=
 
-EXE=main
+EXE=layout
 
 include buildnumber.mak
 

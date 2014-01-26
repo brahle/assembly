@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "util.h"
+#include "util.hpp"
 
 
 namespace overlap {
