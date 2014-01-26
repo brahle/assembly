@@ -1,7 +1,7 @@
 #ifndef OVERLAP_UNIONFIND_CPP_
 #define OVERLAP_UNIONFIND_CPP_
 
-#include "union_find.hpp"
+#include "union_find.h"
 
 namespace layout {
 
