@@ -21,6 +21,7 @@ class Unitigging {
   overlap::ReadSet* reads_;
   overlap::OverlapSet* orig_overlaps_;
   layout::BetterOverlapSet overlaps_;
+  layout::BetterOverlapSet* partly_cleared_;
 
   void removeContainmentEdges();
   void removeTransitiveEdges();

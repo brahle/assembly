@@ -58,15 +58,33 @@ const uint32_t BetterOverlap::Suf(uint32_t read) const {
       overlap_->type == overlap::Overlap::Type::EE;
 }
 
+BetterOverlapSet::BetterOverlapSet(overlap::ReadSet* read_set) :
+    read_set_(read_set),
+    overlaps_() {
+}
+
 BetterOverlapSet::BetterOverlapSet(
     overlap::ReadSet* read_set,
-    overlap::OverlapSet* overlapSet) :
-    read_set_(read_set) {
-  for (size_t i = 0; i < overlapSet->size(); ++i) {
-    overlaps_.emplace_back((*overlapSet)[i], read_set_);
+    overlap::OverlapSet* overlap_set) :
+    read_set_(read_set),
+    overlaps_() {
+  for (size_t i = 0; i < overlap_set->size(); ++i) {
+    overlaps_.emplace_back(new BetterOverlap((*overlap_set)[i], read_set_));
   }
 }
 
-BetterOverlapSet::~BetterOverlapSet() {}
+BetterOverlapSet::~BetterOverlapSet() {
+  for (auto &o : overlaps_) {
+    delete o;
+  }
+}
+
+void BetterOverlapSet::Add(BetterOverlapPtr overlap) {
+  overlaps_.emplace_back(overlap);
+}
+
+void BetterOverlapSet::Add(overlap::Overlap* overlap) {
+  overlaps_.emplace_back(new BetterOverlap(overlap, read_set_));
+}
 
 };

@@ -35,19 +35,26 @@ class BetterOverlap {
 };
 
 class BetterOverlapSet {
+  typedef BetterOverlap* BetterOverlapPtr;
  public:
+  BetterOverlapSet(overlap::ReadSet* read_set);
   BetterOverlapSet(
       overlap::ReadSet* read_set,
-      overlap::OverlapSet* overlapSet);
+      overlap::OverlapSet* overlap_set);
   virtual ~BetterOverlapSet();
 
+  const overlap::ReadSet* readSet() const { return read_set_; }
+
   const size_t size() const { return overlaps_.size(); }
-  BetterOverlap& operator[](size_t i)             { return overlaps_[i]; }
-  const BetterOverlap& operator[](size_t i) const { return overlaps_[i]; }
+  BetterOverlapPtr& operator[](size_t i)             { return overlaps_[i]; }
+  const BetterOverlapPtr& operator[](size_t i) const { return overlaps_[i]; }
+
+  void Add(BetterOverlapPtr overlap);
+  void Add(overlap::Overlap* overlap);
 
  private:
   overlap::ReadSet* read_set_;
-  std::vector<BetterOverlap> overlaps_;
+  std::vector< BetterOverlapPtr > overlaps_;
 };
 
 };
