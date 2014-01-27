@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  double error_rate = 0.10;
+  double error_rate = 0.01;
   size_t min_read_size = 60;
   size_t min_overlap_size = 40;
 
@@ -27,8 +27,7 @@ int main(int argc, char* argv[]) {
   printf("Reading genome data.\n");
   prev = clock();
   FILE* in = fopen(argv[1], "r");
-  std::unique_ptr<overlap::ReadSet> read_set(
-      overlap::ReadFasta(in, min_read_size));
+  std::unique_ptr<overlap::ReadSet> read_set(overlap::ReadFasta(in, min_read_size));
   fclose(in);
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
@@ -36,20 +35,17 @@ int main(int argc, char* argv[]) {
 
   printf("Building BWT.\n");
   prev = clock();
-  std::unique_ptr<overlap::SACA> saca(
-      new overlap::SaisSACA());
-  overlap::String* bwt = saca->BuildBWT(*read_set, 4);
+  overlap::SaisSACA saca;
+  const overlap::String* bwt = saca.BuildBWT(*read_set, 4);
   if (bwt == nullptr) {
     exit(1);
   }
-
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
 
   printf("Building FM-index.\n");
   prev = clock();
-  std::unique_ptr<overlap::FMIndex> fmi(
-      new overlap::BucketedFMIndex(bwt, 4, 128));
+  overlap::BucketedFMIndex fmi(bwt, 4, 128);
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
 
@@ -61,13 +57,11 @@ int main(int argc, char* argv[]) {
 
   printf("Finding candidates.\n");
   prev = clock();
-  std::unique_ptr<overlap::SuffixFilter> sufter(
-      new overlap::BFSSuffixFilter(*fmi, read_order, error_rate, min_overlap_size));
+  overlap::BFSSuffixFilter sufter(fmi, read_order, error_rate, min_overlap_size);
 
-  std::unique_ptr<overlap::OverlapSet> overlaps(
-      new overlap::OverlapSet(num_reads * num_reads / 2));
+  overlap::OverlapSet overlaps(num_reads * num_reads / 2);
   for (uint32_t read_idx = 0; read_idx < num_reads; ++read_idx) {
-    sufter->FindCandidates(*read_set->Get(read_idx), overlaps.get());
+    sufter.FindCandidates(*read_set->Get(read_idx), &overlaps);
   }
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);

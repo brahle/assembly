@@ -34,6 +34,7 @@ BucketedFMIndex::BucketedFMIndex(
       bucket_size_(bucket_size),
       num_buckets_((size_ - 1) / bucket_size_ + 2),
       buckets_(new uint32_t[num_buckets_ * max_val_]) {
+  Init();
 }
 
 BucketedFMIndex::~BucketedFMIndex() {

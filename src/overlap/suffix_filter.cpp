@@ -104,6 +104,8 @@ void BFSSuffixFilter::BFS(
       std::tie(low, high, pos) = curr.front();
       error = state_dist_[curr.front()];
 
+      printf("%d, %d %d, %d %d: %d\n", read.id(), low, high, start_pos, pos, error);
+
       CheckOverlaps(read.id(), low, high, start_pos, pos, error, read.size());
 
       if (pos > 0 && !(pos % factor_size_)) {
