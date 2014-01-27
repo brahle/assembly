@@ -1,9 +1,11 @@
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 #include <memory>
 #include <queue>
 #include <tuple>
 #include <unordered_map>
+#include <vector>
 
 #include "fm_index.h"
 #include "overlap.h"
@@ -49,42 +51,35 @@ BFSSuffixFilter::BFSSuffixFilter(
 BFSSuffixFilter::~BFSSuffixFilter() {
 }
 
-void BFSSuffixFilter::FindCandidates(
+bool BFSSuffixFilter::FindCandidates(
     const Read& read,
     OverlapSet* overlaps) {
-  if (read.size() < min_overlap_size_) {
-    return;
-  }
 
   const size_t read_size = read.size();
   overlaps_ = overlaps;
 
+  uint32_t low = 0, high = fmi_.size();
+  for(int32_t pos = read_size - 1; pos >= 0; --pos) {
+    uint8_t chr = read[pos];
+    low = fmi_.Less(chr) + fmi_.Rank(chr, low);
+    high = fmi_.Less(chr) + fmi_.Rank(chr, high);
+  }
+
+  if (high > low + 1) {
+    return true;
+  }
+
   for (int32_t pos = read_size - 1; pos + 1 >= (int32_t)factor_size_; pos -= factor_size_) {
-    BFS(read, pos, ((size_t)pos == read_size - 1 ? 1 : 0));
+    uint32_t start_error = ((size_t)pos == read_size - 1 ? 1 : 0);
+    if (BFS(read, pos, start_error)) {
+      return true;
+    }
   }
+
+  return false;
 }
 
-OverlapSet* BFSSuffixFilter::FilterContained(
-    OverlapSet* overlaps) {
-  if (overlaps) {
-    return nullptr;
-  }
-  return nullptr;
-}
-
-std::size_t BFSSuffixFilter::state_hash::operator()(const State& k) const {
-  return (std::hash<uint32_t>()(std::get<0>(k)) ^
-          std::hash<uint32_t>()(std::get<1>(k)) ^
-          std::hash<uint32_t>()(std::get<2>(k)));
-}
-
-bool BFSSuffixFilter::state_equal::operator()(const State& lhs, const State& rhs) const {
-  return (std::get<0>(lhs) == std::get<0>(rhs) &&
-          std::get<1>(lhs) == std::get<1>(rhs) &&
-          std::get<2>(lhs) == std::get<2>(rhs));
-}
-
-void BFSSuffixFilter::BFS(
+bool BFSSuffixFilter::BFS(
     const Read& read,
     uint32_t start_pos,
     uint32_t max_error) {
@@ -92,20 +87,16 @@ void BFSSuffixFilter::BFS(
   BFSQueue queues[2];
   state_dist_.clear();
 
-  State start_state = std::make_tuple(0, fmi_.size(), 0);
-  queues[0].push(start_state);
-  state_dist_[start_state] = max_error;
+  Queue(0, fmi_.size(), 0, max_error, queues[0], false);
 
   for (size_t qid = 0; !queues[qid].empty(); qid = 1 - qid) {
     std::queue<State>& curr = queues[qid];
     std::queue<State>& next = queues[1 - qid];
 
-    uint32_t low, high, pos, error, value;
+    uint32_t low, high, pos, error;
     while(!curr.empty()) {
       std::tie(low, high, pos) = curr.front();
       error = state_dist_[curr.front()];
-
-      // printf("%d, %d %d, %d %d: %d\n", read.id(), low, high, start_pos, pos, error);
 
       CheckOverlaps(read.id(), low, high, start_pos, pos, error, read.size());
 
@@ -120,8 +111,7 @@ void BFSSuffixFilter::BFS(
         if (newlow >= newhigh) continue;
 
         if (pos <= start_pos) {
-          value = read[start_pos - pos];
-          if (cix == value) {
+          if (cix == read[start_pos - pos]) {
             Queue(newlow, newhigh, pos + 1, error, curr, true);
           } else if (error > 0) {
             Queue(newlow, newhigh, pos + 1, error - 1, next, true);
@@ -134,6 +124,8 @@ void BFSSuffixFilter::BFS(
       curr.pop();
     }
   }
+
+  return false;
 }
 
 void BFSSuffixFilter::CheckOverlaps(
@@ -170,6 +162,70 @@ void BFSSuffixFilter::Queue(
   if (state_dist_.find(new_state) == state_dist_.end()) {
     queue.push(new_state);
     state_dist_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
+  }
+}
+
+std::size_t BFSSuffixFilter::state_hash::operator()(const State& k) const {
+  return (std::hash<uint32_t>()(std::get<0>(k)) ^
+          std::hash<uint32_t>()(std::get<1>(k)) ^
+          std::hash<uint32_t>()(std::get<2>(k)));
+}
+
+bool BFSSuffixFilter::state_equal::operator()(const State& lhs, const State& rhs) const {
+  return (std::get<0>(lhs) == std::get<0>(rhs) &&
+          std::get<1>(lhs) == std::get<1>(rhs) &&
+          std::get<2>(lhs) == std::get<2>(rhs));
+}
+
+static void FilterPass(
+    const std::vector<Overlap*>& invec,
+    std::vector<Overlap*>& outvec) {
+
+  Overlap* prev = nullptr;
+  for (Overlap* curr : invec) {
+    if (prev == nullptr) {
+      outvec.push_back(curr);
+      prev = curr;
+    } else if (prev->read_one == curr->read_one and
+               prev->read_two == curr->read_two and
+               prev->type == curr->type) {
+      if ((int32_t)abs(curr->len_one - prev->len_one) > (prev->score - curr->score) + 1) {
+        outvec.push_back(curr);
+        prev = curr;
+      }
+    } else {
+      outvec.push_back(curr);
+      prev = curr;
+    }
+  }
+}
+
+void FilterCandidates(
+    const std::unordered_set<uint32_t>& contained,
+    OverlapSet& candidates,
+    OverlapSet* filtered) {
+
+  candidates.Sort();
+  std::vector<Overlap*> cont;
+
+  for (uint32_t idx = 0; idx < candidates.size(); ++idx) {
+    Overlap* curr = candidates[idx];
+    if (curr->read_one != curr->read_two and
+        contained.find(curr->read_one) == contained.end() and
+        contained.find(curr->read_two) == contained.end()) {
+      cont.push_back(curr);
+    }
+  }
+
+  std::vector<Overlap*> fwd, bwd;
+  FilterPass(cont, fwd);
+
+  std::reverse(fwd.begin(), fwd.end());
+  FilterPass(fwd, bwd);
+
+  std::reverse(bwd.begin(), bwd.end());
+  for (Overlap* o : bwd) {
+    filtered->Add(new Overlap(*o));
   }
 }
 

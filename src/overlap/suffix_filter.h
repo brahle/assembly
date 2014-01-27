@@ -28,11 +28,8 @@ class SuffixFilter {
 
   virtual ~SuffixFilter();
 
-  virtual void FindCandidates(
+  virtual bool FindCandidates(
       const Read& read,
-      OverlapSet* overlaps) = 0;
-
-  virtual OverlapSet* FilterContained(
       OverlapSet* overlaps) = 0;
 
   static size_t FactorSize(
@@ -57,11 +54,8 @@ class BFSSuffixFilter : public SuffixFilter {
 
   ~BFSSuffixFilter();
 
-  void FindCandidates(
+  bool FindCandidates(
       const Read& read,
-      OverlapSet* overlaps);
-
-  OverlapSet* FilterContained(
       OverlapSet* overlaps);
 
  private:
@@ -78,7 +72,7 @@ class BFSSuffixFilter : public SuffixFilter {
   typedef std::queue<State> BFSQueue;
   typedef std::unordered_map<State, uint32_t, state_hash, state_equal> BFSMap;
 
-  void BFS(
+  bool BFS(
       const Read& read,
       uint32_t start_pos,
       uint32_t max_error);
@@ -100,12 +94,17 @@ class BFSSuffixFilter : public SuffixFilter {
       BFSQueue& queue,
       bool can_inc);
 
-  std::unordered_set<uint32_t> contained_;
   BFSMap state_dist_;
   OverlapSet* overlaps_;
 
   DISALLOW_COPY_AND_ASSIGN(BFSSuffixFilter);
 };
+
+void FilterCandidates(
+    const std::unordered_set<uint32_t>& contained,
+    OverlapSet& candidates,
+    OverlapSet* filtered);
+
 
 }  // namespace overlap
 
