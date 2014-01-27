@@ -9,6 +9,11 @@
 
 namespace layout {
 
+const double EPSILON = 0.15;
+const double ALPHA = 3;
+
+inline bool eq(double x, double y, double eps);
+
 class BetterOverlap {
   typedef overlap::ReadSet* ReadSetPtr;
   typedef overlap::Overlap* OverlapPtr;

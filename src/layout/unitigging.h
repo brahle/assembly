@@ -26,6 +26,10 @@ class Unitigging {
   layout::BetterOverlapSet* no_transitives_;
 
   void removeContainmentEdges();
+  bool isTransitive(
+      BetterOverlap* o1,
+      BetterOverlap* o2,
+      BetterOverlap* o3) const;
   void removeTransitiveEdges();
   void makeContigs();
 };
