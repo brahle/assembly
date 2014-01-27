@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
   printf("Validating overlap candidates.\n");
   prev = clock();
-  //candidates.reset(overlap::ValidateCandidates(*candidates));
+  candidates.reset(overlap::ValidateCandidates(*reads, *candidates));
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
   size_t num_overlaps = candidates->size();
@@ -91,10 +91,11 @@ int main(int argc, char* argv[]) {
   FILE* fout = fopen(argv[2], "w");
   for (uint32_t oid = 0; oid < candidates->size(); ++oid) {
     const overlap::Overlap* o = candidates->Get(oid);
-    fprintf(fout, "%d %d %d %d\n",
+    fprintf(fout, "%d %d %d %d EC %d\n",
         reads->Get(o->read_one)->orig_id(),
         reads->Get(o->read_two)->orig_id(),
         o->len_one,
+        o->len_two,
         o->score);
   }
   fclose(fout);

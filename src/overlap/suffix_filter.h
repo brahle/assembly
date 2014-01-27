@@ -76,13 +76,19 @@ class BFSSuffixFilter : public SuffixFilter {
     void Clear();
 
    private:
-    typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
+//    typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
 
-    struct StateHash : public std::unary_function<State, std::size_t> {
+    struct State {
+      uint32_t low;
+      uint32_t high;
+      uint32_t pos;
+    };
+
+    struct StateHash {
       std::size_t operator()(const State& k) const;
     };
 
-    struct StateEqual : public std::binary_function<State, State, bool> {
+    struct StateEqual {
       bool operator()(const State& lhs, const State& rhs) const;
     };
 

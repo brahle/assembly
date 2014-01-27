@@ -79,16 +79,16 @@ OverlapSet* BFSSuffixFilter::FindCandidates(const ReadSet& reads,
     const Read& read = *reads[read_idx];
     const size_t read_size = read.size();
 
-    std::unique_ptr<BFSContext> bfs(
-      new BFSContext(read, read_order, fmi, factor_size_,
-                     min_overlap_size_, candidates.get()));
-
     for (int32_t pos = read_size - 1;
          pos + 1 >= (int32_t)factor_size_ * 2;
          pos -= factor_size_) {
 
+      std::unique_ptr<BFSContext> bfs(
+        new BFSContext(read, read_order, fmi, factor_size_,
+                       min_overlap_size_, candidates.get()));
+
       bfs->Start(pos, (size_t)pos == read_size - 1);
-      bfs->Clear();
+      //bfs->Clear();
     }
   }
 
@@ -129,7 +129,8 @@ BFSSuffixFilter::BFSContext::BFSContext(const Read& read, const UintArray& read_
       fmi_(fmi),
       factor_size_(factor_size),
       min_overlap_size_(min_overlap_size),
-      results_(results) {
+      results_(results),
+      states_(100000) {
 }
 
 void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
@@ -141,7 +142,9 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
 
     uint32_t low, high, pos;
     while(!curr.empty()) {
-      std::tie(low, high, pos) = curr.front();
+      low = curr.front().low;
+      high = curr.front().high;
+      pos = curr.front().pos;
       error = states_[curr.front()];
 
       CheckOverlaps(low, high, start_pos, pos, error);
@@ -179,12 +182,11 @@ void BFSSuffixFilter::BFSContext::Clear() {
 
 void BFSSuffixFilter::BFSContext::CheckOverlaps(uint32_t low, uint32_t high,
     uint32_t start, uint32_t pos, uint32_t error) {
-  assert(low <= fmi_.size() && high <= fmi_.size());
+
   size_t overlap_size = pos + read_.size() - start - 1;
   if (pos >= factor_size_ && overlap_size >= min_overlap_size_) {
     low = fmi_.Rank(0, low);
     high = fmi_.Rank(0, high);
-    assert(low <= read_order_.size() && high <= read_order_.size());
 
     for (uint32_t idx = low; idx < high; ++idx) {
       results_->Add(
@@ -196,7 +198,7 @@ void BFSSuffixFilter::BFSContext::CheckOverlaps(uint32_t low, uint32_t high,
 
 void BFSSuffixFilter::BFSContext::Queue(uint32_t low, uint32_t high,
     uint32_t pos, uint32_t error, StateQueue& queue, bool can_inc) {
-  State new_state(low, high, pos);
+  State new_state = {low, high, pos};
   if (states_.find(new_state) == states_.end()) {
     queue.push(new_state);
     states_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
@@ -205,17 +207,27 @@ void BFSSuffixFilter::BFSContext::Queue(uint32_t low, uint32_t high,
 
 std::size_t BFSSuffixFilter::BFSContext::StateHash::operator()(
     const BFSSuffixFilter::BFSContext::State& k) const {
+  /*
   return (std::hash<uint32_t>()(std::get<0>(k)) ^
           std::hash<uint32_t>()(std::get<1>(k)) ^
           std::hash<uint32_t>()(std::get<2>(k)));
+  */
+  register size_t state;
+  state = ((k.low << 5) + k.low) ^ k.high;
+  return ((state << 5) + state) ^ k.pos;
 }
 
 bool BFSSuffixFilter::BFSContext::StateEqual::operator()(
     const BFSSuffixFilter::BFSContext::State& lhs,
     const BFSSuffixFilter::BFSContext::State& rhs) const {
+  /*
   return (std::get<0>(lhs) == std::get<0>(rhs) &&
           std::get<1>(lhs) == std::get<1>(rhs) &&
           std::get<2>(lhs) == std::get<2>(rhs));
+          */
+  return (lhs.low == rhs.low and
+          lhs.high == rhs.high and
+          lhs.pos == lhs.pos);
 }
 
 }  // namespace overlap

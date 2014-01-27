@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <algorithm>
 #include <map>
 #include <memory>
 
@@ -35,22 +36,24 @@ OverlapSet* ValidateCandidates(
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
     Overlap* o = candidates[oid];
 
+    Read* read_one = reads[o->read_one];
+    Read* read_two = reads[o->read_two];
+
     int len_two, score;
     int ret = MyersEditDistance(
-        reads[o->read_one]->data(),
+        read_one->data() + read_one->size() - o->len_one,
         o->len_one,
-        reads[o->read_two]->data(),
-        (int)(o->len_one * extra_ratio),
+        read_two->data(),
+        std::min((int)(o->len_one * extra_ratio), (int)read_two->size()),
         5,
         (int)(o->len_one * error_rate * 2),
         MYERS_MODE_SHW,
         &score,
         &len_two);
 
-    if (ret == MYERS_STATUS_OK) {
-      o->len_two = len_two;
+    if (ret == MYERS_STATUS_OK and len_two != -1 and score != -1) {
+      o->len_two = len_two + 1;
       o->score = score;
-      o->score = OverlapConfidence(o);
 
       auto elem = best.find(std::make_pair(o->read_one, o->read_two));
       if (elem == best.end() or elem->second->score < o->score) {

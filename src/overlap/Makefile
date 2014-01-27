@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CXX=g++
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -O3 # -g -ggdb
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11
 LDFLAGS=
 # Sources.
 SRCDIR=.
@@ -13,7 +13,12 @@ OBJECTS=$(SOURCES:.cpp=.o) sais.o
 BINDIR=../../bin
 BINARIES=olapper
 
+
+all : CFLAGS += -O3
 all : $(addprefix $(SRCDIR)/, $(SOURCES)) $(BINARIES)
+
+debug: CFLAGS += -DDEBUG -g
+debug: $(BINARIES)
 
 $(BINARIES) : $(addprefix $(OBJDIR)/, $(OBJECTS))
 	$(CXX) $^ -o $(BINDIR)/$@ $(LDFLAGS)
