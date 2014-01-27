@@ -32,17 +32,19 @@ protected:
 
 class Read : public String {
 public:
-  Read(const uint8_t* data, size_t size, uint32_t id);
+  Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id);
   ~Read();
 
   void Print(FILE* fd) const;
 
   const uint8_t* data_rc() const;
   uint32_t id() const;
+  uint32_t orig_id() const;
 
 private:
   const uint8_t* data_rc_;
   const uint32_t id_;
+  const uint32_t orig_id_;
 };
 
 class ReadSet {

@@ -9,9 +9,10 @@ namespace overlap {
 
 
 FMIndex::FMIndex(
-    const String* bwt,
+    const String& bwt,
     size_t max_val)
-    : size_(bwt->size()), max_val_(max_val) {
+    : size_(bwt.size()),
+      max_val_(max_val) {
 }
 
 FMIndex::~FMIndex() {
@@ -26,12 +27,11 @@ size_t FMIndex::max_val() const {
 }
 
 BucketedFMIndex::BucketedFMIndex(
-    const String* bwt,
+    const String& bwt,
     size_t max_val,
     size_t bucket_size)
     : FMIndex(bwt, max_val),
-      bwt_(bwt),
-      bwt_data_(bwt_->data()),
+      bwt_data_(bwt.data()),
       char_counts_(new uint32_t[max_val_ + 2]),
       bucket_size_(bucket_size),
       num_buckets_((size_ - 1) / bucket_size_ + 2),
@@ -79,7 +79,7 @@ void BucketedFMIndex::Init() {
     }
     const uint32_t start_idx = (bidx - 1) * bucket_size_;
     for (uint32_t pos = 0; pos < bucket_size_ && start_idx + pos < size_; ++pos) {
-      uint8_t chr = (*bwt_)[start_idx + pos];
+      uint8_t chr = bwt_data_[start_idx + pos];
       if (chr > 0) {
         ++curr_bucket[chr - 1];
       }

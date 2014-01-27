@@ -41,10 +41,11 @@ bool String::operator< (const String& other) const {
   return strcmp((const char*)data_, (const char*)other.data_) < 0;
 }
 
-Read::Read(const uint8_t* data, size_t size, uint32_t id)
+Read::Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id)
     : String(data, size),
       data_rc_(ReverseComplement(data, size)),
-      id_(id) {
+      id_(id),
+      orig_id_(orig_id) {
 }
 
 Read::~Read() {
@@ -64,6 +65,10 @@ const uint8_t* Read::data_rc() const {
 
 uint32_t Read::id() const {
   return id_;
+}
+
+uint32_t Read::orig_id() const {
+  return orig_id_;
 }
 
 ReadSet::ReadSet(size_t capacity) {
@@ -101,7 +106,7 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
   ReadSet* read_set = new ReadSet(1 << 16);
 
   uint32_t id = 0;
-  while (fgets(buff, sizeof buff, fd)) {
+  for (uint32_t orig_id = 0; fgets(buff, sizeof buff, fd); ++orig_id) {
     assert(fgets(buff, sizeof buff, fd));
     size_t size = strlen(buff);
 
@@ -132,7 +137,7 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
         read_data[pos] = fc;
       }
 
-      read_set->Add(new Read(read_data, size - 1, id++));
+      read_set->Add(new Read(read_data, size - 1, id++, orig_id));
       assert(read_set->Get(id - 1)->id() == id - 1);
     }
   }

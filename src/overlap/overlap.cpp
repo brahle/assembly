@@ -47,6 +47,10 @@ void OverlapSet::Add(Overlap* overlap) {
  overlaps_.push_back(overlap);
 }
 
+Overlap* OverlapSet::Get(uint32_t idx) const {
+  return overlaps_[idx];
+}
+
 void OverlapSet::Sort() {
   std::sort(overlaps_.begin(), overlaps_.end(), OverlapCmp());
 }

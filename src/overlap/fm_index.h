@@ -12,7 +12,7 @@ class String;
 
 class FMIndex {
  public:
-  FMIndex(const String* bwt, size_t max_val);
+  FMIndex(const String& bwt, size_t max_val);
   virtual ~FMIndex();
 
   // Accessors.
@@ -30,7 +30,7 @@ class FMIndex {
 
 class BucketedFMIndex : public FMIndex {
  public:
-  BucketedFMIndex(const String* bwt, size_t max_val, size_t bucket_size);
+  BucketedFMIndex(const String& bwt, size_t max_val, size_t bucket_size);
   ~BucketedFMIndex();
 
   uint32_t Less(uint8_t chr) const;
@@ -39,8 +39,6 @@ class BucketedFMIndex : public FMIndex {
  private:
   void Init();
 
-  // BWT string and it's size.
-  const std::unique_ptr<const String> bwt_;
   const uint8_t* bwt_data_;
   // Cumulative sum of total char counts.
   uint32_t* const char_counts_;

@@ -38,6 +38,8 @@ class OverlapSet {
   virtual ~OverlapSet();
 
   void Add(Overlap* overlap);
+  Overlap* Get(uint32_t idx) const;
+
   void Sort();
 
   size_t size() const;

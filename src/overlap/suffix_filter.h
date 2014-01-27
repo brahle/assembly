@@ -4,9 +4,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <queue>
-#include <unordered_set>
 #include <unordered_map>
-#include <vector>
 
 #include "util.h"
 
@@ -17,28 +15,28 @@ namespace overlap {
 class FMIndex;
 class OverlapSet;
 class Read;
+class ReadSet;
+
 
 class SuffixFilter {
  public:
   SuffixFilter(
-      const FMIndex& fmi,
-      const UintArray& read_order,
       double error_rate,
       size_t min_overlap_size);
 
   virtual ~SuffixFilter();
 
-  virtual bool FindCandidates(
-      const Read& read,
-      OverlapSet* overlaps) = 0;
+  virtual OverlapSet* FindCandidates(
+      const ReadSet& reads,
+      const UintArray& read_order,
+      const FMIndex& fmi) = 0;
 
-  static size_t FactorSize(
-      double error_rate,
-      size_t min_overlap_size);
+  virtual OverlapSet* FilterCandidates(
+      const OverlapSet& candidates) = 0;
+
+  static size_t FactorSize(double error_rate, size_t min_overlap_size);
 
  protected:
-  const FMIndex& fmi_;
-  const UintArray& read_order_;
   const size_t min_overlap_size_;
   const size_t factor_size_;
 };
@@ -47,63 +45,77 @@ class SuffixFilter {
 class BFSSuffixFilter : public SuffixFilter {
  public:
   BFSSuffixFilter(
-      const FMIndex& fmi,
-      const UintArray& read_order,
       double error_rate,
       size_t min_overlap_size);
 
   ~BFSSuffixFilter();
 
-  bool FindCandidates(
-      const Read& read,
-      OverlapSet* overlaps);
+  OverlapSet* FindCandidates(
+      const ReadSet& reads,
+      const UintArray& read_order,
+      const FMIndex& fmi);
+
+  OverlapSet* FilterCandidates(
+      const OverlapSet& candidates);
 
  private:
-  typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
+  class BFSContext {
+   public:
+    BFSContext(
+        const Read& read,
+        const UintArray& read_order,
+        const FMIndex& fmi,
+        size_t factor_size,
+        size_t min_overlap_size,
+        OverlapSet* results);
 
-  struct state_hash : public std::unary_function<State, std::size_t> {
-    std::size_t operator()(const State& k) const;
+    void Start(
+        uint32_t start_pos,
+        uint32_t max_error);
+
+    void Clear();
+
+   private:
+    typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
+
+    struct StateHash : public std::unary_function<State, std::size_t> {
+      std::size_t operator()(const State& k) const;
+    };
+
+    struct StateEqual : public std::binary_function<State, State, bool> {
+      bool operator()(const State& lhs, const State& rhs) const;
+    };
+
+    typedef std::queue<State> StateQueue;
+    typedef std::unordered_map<State, uint32_t, StateHash, StateEqual> StateMap;
+
+    void CheckOverlaps(
+        uint32_t low,
+        uint32_t high,
+        uint32_t start,
+        uint32_t pos,
+        uint32_t error);
+
+    void Queue(
+        uint32_t low,
+        uint32_t high,
+        uint32_t pos,
+        uint32_t error,
+        StateQueue& queue,
+        bool can_inc);
+
+    const Read& read_;
+    const UintArray& read_order_;
+    const FMIndex& fmi_;
+    const size_t factor_size_;
+    const size_t min_overlap_size_;
+
+    OverlapSet* results_;
+
+    StateQueue queue_[2];
+    StateMap states_;
   };
-
-  struct state_equal : public std::binary_function<State, State, bool> {
-    bool operator()(const State& lhs, const State& rhs) const;
-  };
-
-  typedef std::queue<State> BFSQueue;
-  typedef std::unordered_map<State, uint32_t, state_hash, state_equal> BFSMap;
-
-  bool BFS(
-      const Read& read,
-      uint32_t start_pos,
-      uint32_t max_error);
-
-  void CheckOverlaps(
-      uint32_t id,
-      uint32_t low,
-      uint32_t high,
-      uint32_t start,
-      uint32_t pos,
-      uint32_t error,
-      size_t read_size);
-
-  void Queue(
-      uint32_t low,
-      uint32_t high,
-      uint32_t pos,
-      uint32_t error,
-      BFSQueue& queue,
-      bool can_inc);
-
-  BFSMap state_dist_;
-  OverlapSet* overlaps_;
-
-  DISALLOW_COPY_AND_ASSIGN(BFSSuffixFilter);
 };
-
-void FilterCandidates(
-    const std::unordered_set<uint32_t>& contained,
-    OverlapSet& candidates,
-    OverlapSet* filtered);
 
 
 }  // namespace overlap
