@@ -1,5 +1,7 @@
 #include "unitigging.h"
 
+#include <layout/union_find.h>
+
 namespace layout {
 
 inline bool eq(double x, double y, double eps) {
@@ -74,7 +76,6 @@ bool Unitigging::isTransitive(
           EPSILON * o1->Length() + ALPHA)) {
     return false;
   }
-
   return true;
 }
 
@@ -88,12 +89,10 @@ void Unitigging::removeTransitiveEdges() {
   }
   brs.Finalize();
 
-  std::vector< int > erased;
-
+  std::vector< size_t > erased;
   for (size_t i = 0; i < no_contains_->size(); ++i) {
     auto better_overlap = (*no_contains_)[i];
     auto overlap = better_overlap->overlap();
-
     // TODO: izdvoji ovo u zasebnu klasu iterator
     auto v1 = brs[overlap->read_one]->overlaps();
     auto v2 = brs[overlap->read_two]->overlaps();
@@ -126,6 +125,44 @@ void Unitigging::removeTransitiveEdges() {
 }
 
 void Unitigging::makeContigs() {
+  uint32_t** degrees = new uint32_t*[reads_->size()];
+  for (size_t i = 0; i < reads_->size(); ++i) {
+    degrees[i] = new uint32_t[2]();
+  }
+  auto add_degree =
+      [] (uint32_t** degrees,
+          uint32_t read,
+          layout::BetterOverlap* better_overlap) {
+    uint32_t suf = better_overlap->Suf(read);
+    degrees[read][suf] += 1;
+  };
+  for (size_t i = 0; i < no_transitives_->size(); ++i) {
+    auto better_overlap = (*no_transitives_)[i];
+    auto overlap = better_overlap->overlap();
+    add_degree(degrees, overlap->read_one, better_overlap);
+    add_degree(degrees, overlap->read_two, better_overlap);
+  }
+
+  UnionFind uf(reads_->size());
+  std::vector< size_t > remaining;
+  for (size_t i = 0; i < no_transitives_->size(); ++i) {
+    auto better_overlap = (*no_transitives_)[i];
+    auto overlap = better_overlap->overlap();
+    auto read_one = overlap->read_one;
+    auto read_two = overlap->read_two;
+    if (degrees[read_one][better_overlap->Suf(read_one)] == 1 &&
+        degrees[read_two][better_overlap->Suf(read_two)] == 1) {
+      uf.join(read_one, read_two);
+    } else {
+      remaining.emplace_back(i);
+    }
+  }
+
+  size_t cnt = 0;
+
+
+
+  delete [] degrees;
 }
 
 };
