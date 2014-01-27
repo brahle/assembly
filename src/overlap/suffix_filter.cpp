@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <memory>
 #include <queue>
@@ -116,6 +117,8 @@ void BFSSuffixFilter::BFS(
       for (uint8_t cix = 1; cix <= fmi_.max_val(); ++cix) {
         newlow = fmi_.Less(cix) + fmi_.Rank(cix, low);
         newhigh = fmi_.Less(cix) + fmi_.Rank(cix, high);
+        if (newlow >= newhigh) continue;
+
         if (pos <= start_pos) {
           value = read[start_pos - pos];
           if (cix == value) {
@@ -142,10 +145,12 @@ void BFSSuffixFilter::CheckOverlaps(
     uint32_t error,
     size_t read_size) {
 
+  assert(low <= fmi_.size() && high <= fmi_.size());
   size_t overlap_size = pos + read_size - start - 1;
   if (pos >= factor_size_ && overlap_size >= min_overlap_size_) {
     low = fmi_.Rank(0, low);
     high = fmi_.Rank(0, high);
+    assert(low <= read_order_.size() && high <= read_order_.size());
     for (uint32_t idx = low; idx < high; ++idx) {
       overlaps_->Add(
           new Overlap(id, read_order_[idx], overlap_size, overlap_size, Overlap::Type::EB, error));
@@ -162,7 +167,7 @@ void BFSSuffixFilter::Queue(
     bool can_inc) {
 
   State new_state(low, high, pos);
-  if (high > low && state_dist_.find(new_state) == state_dist_.end()) {
+  if (state_dist_.find(new_state) == state_dist_.end()) {
     queue.push(new_state);
     state_dist_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
   }

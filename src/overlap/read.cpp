@@ -51,6 +51,13 @@ Read::~Read() {
   delete[] data_rc_;
 }
 
+void Read::Print(FILE* fd) const {
+  for (uint32_t idx = 0; idx < size_; ++idx) {
+    fprintf(fd, "%c", (char)data_[idx] + 'A');
+  }
+  fprintf(fd, "\n");
+}
+
 const uint8_t* Read::data_rc() const {
   return data_rc_;
 }
@@ -125,7 +132,8 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
         read_data[pos] = fc;
       }
 
-      read_set->Add(new Read(read_data, size, id++));
+      read_set->Add(new Read(read_data, size - 1, id++));
+      assert(read_set->Get(id - 1)->id() == id - 1);
     }
   }
 

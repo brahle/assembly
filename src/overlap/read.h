@@ -25,7 +25,7 @@ public:
   const uint8_t& operator[](const uint32_t idx) const;
   bool operator< (const String& other) const;
 
-private:
+protected:
   const uint8_t* data_;
   const size_t size_;
 };
@@ -34,6 +34,8 @@ class Read : public String {
 public:
   Read(const uint8_t* data, size_t size, uint32_t id);
   ~Read();
+
+  void Print(FILE* fd) const;
 
   const uint8_t* data_rc() const;
   uint32_t id() const;

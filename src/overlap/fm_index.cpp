@@ -46,13 +46,10 @@ BucketedFMIndex::~BucketedFMIndex() {
 
 
 uint32_t BucketedFMIndex::Less(uint8_t chr) const {
-  assert(chr <= max_val_);
-  assert(char_counts_[chr] <= size_);
   return char_counts_[chr];
 }
 
 uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
-  assert(pos <= size_);
   uint32_t count = 0;
   for (uint32_t idx = pos % bucket_size_; idx > 0; --idx) {
     count += (bwt_data_[pos - idx] == chr ? 1 : 0);
@@ -66,7 +63,6 @@ uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
       count -= bucket[cidx];
     }
   }
-  assert(count <= size_);
   return count;
 }
 
@@ -95,7 +91,6 @@ void BucketedFMIndex::Init() {
     char_counts_[char_idx] = char_counts_[char_idx - 1] + Rank(char_idx - 1, size_);
     assert(char_counts_[char_idx] <= size_);
   }
-  assert(char_counts_[max_val_ + 1] == size_);
 }
 
 

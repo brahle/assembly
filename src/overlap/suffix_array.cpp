@@ -15,7 +15,9 @@ SACA::~SACA() {}
 
 SaisSACA::SaisSACA() {}
 
-String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
+String* SaisSACA::BuildBWT(
+    const ReadSet& reads,
+    size_t depth) {
   size_t num_strings = reads.size();
   size_t bwt_size = num_strings;
 
