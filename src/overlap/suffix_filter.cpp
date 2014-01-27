@@ -58,7 +58,7 @@ void BFSSuffixFilter::FindCandidates(
   const size_t read_size = read.size();
   overlaps_ = overlaps;
 
-  for (uint32_t pos = read_size - 1; pos + 1 >= factor_size_; pos -= factor_size_) {
+  for (int32_t pos = read_size - 1; pos + 1 >= (int32_t)factor_size_; pos -= factor_size_) {
     BFS(read, pos, ((size_t)pos == read_size - 1 ? 1 : 0));
   }
 }
@@ -104,16 +104,12 @@ void BFSSuffixFilter::BFS(
       std::tie(low, high, pos) = curr.front();
       error = state_dist_[curr.front()];
 
-      printf("%d, %d %d, %d %d: %d\n", read.id(), low, high, start_pos, pos, error);
+      // printf("%d, %d %d, %d %d: %d\n", read.id(), low, high, start_pos, pos, error);
 
       CheckOverlaps(read.id(), low, high, start_pos, pos, error, read.size());
 
-      if (pos > 0 && !(pos % factor_size_)) {
-        error += 1;
-      }
-
       if (error > 0 && pos <= start_pos) {
-        Queue(low, high, pos + 1, error - 1, next);
+        Queue(low, high, pos + 1, error - 1, next, true);
       }
 
       uint32_t newlow, newhigh;
@@ -123,12 +119,12 @@ void BFSSuffixFilter::BFS(
         if (pos <= start_pos) {
           value = read[start_pos - pos];
           if (cix == value) {
-            Queue(newlow, newhigh, pos + 1, error, curr);
+            Queue(newlow, newhigh, pos + 1, error, curr, true);
           } else if (error > 0) {
-            Queue(newlow, newhigh, pos + 1, error - 1, next);
+            Queue(newlow, newhigh, pos + 1, error - 1, next, true);
           }
         } else if (error > 0) {
-          Queue(newlow, newhigh, pos, error - 1, next);
+          Queue(newlow, newhigh, pos, error - 1, next, false);
         }
       }
 
@@ -162,12 +158,13 @@ void BFSSuffixFilter::Queue(
     uint32_t high,
     uint32_t pos,
     uint32_t error,
-    BFSQueue& queue) {
+    BFSQueue& queue,
+    bool can_inc) {
 
   State new_state(low, high, pos);
-  if (state_dist_.find(new_state) == state_dist_.end()) {
+  if (high > low && state_dist_.find(new_state) == state_dist_.end()) {
     queue.push(new_state);
-    state_dist_[new_state] = error;
+    state_dist_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
   }
 }
 

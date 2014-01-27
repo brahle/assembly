@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
   printf("Building FM-index.\n");
   prev = clock();
-  overlap::BucketedFMIndex fmi(bwt, 4, 128);
+  overlap::BucketedFMIndex fmi(bwt, 4, 32);
   curr = clock();
   printf("  %.3fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
 

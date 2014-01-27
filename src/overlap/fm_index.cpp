@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstring>
 
 #include "read.h"
@@ -30,6 +31,7 @@ BucketedFMIndex::BucketedFMIndex(
     size_t bucket_size)
     : FMIndex(bwt, max_val),
       bwt_(bwt),
+      bwt_data_(bwt_->data()),
       char_counts_(new uint32_t[max_val_ + 2]),
       bucket_size_(bucket_size),
       num_buckets_((size_ - 1) / bucket_size_ + 2),
@@ -44,13 +46,16 @@ BucketedFMIndex::~BucketedFMIndex() {
 
 
 uint32_t BucketedFMIndex::Less(uint8_t chr) const {
+  assert(chr <= max_val_);
+  assert(char_counts_[chr] <= size_);
   return char_counts_[chr];
 }
 
 uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
+  assert(pos <= size_);
   uint32_t count = 0;
   for (uint32_t idx = pos % bucket_size_; idx > 0; --idx) {
-    count += ((*bwt_)[pos - idx] == chr ? 1 : 0);
+    count += (bwt_data_[pos - idx] == chr ? 1 : 0);
   }
   uint32_t* bucket = buckets_ + (pos / bucket_size_ * max_val_);
   if (chr > 0) {
@@ -61,6 +66,7 @@ uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
       count -= bucket[cidx];
     }
   }
+  assert(count <= size_);
   return count;
 }
 
@@ -87,7 +93,9 @@ void BucketedFMIndex::Init() {
   memset(char_counts_, 0, (max_val_ + 2) * sizeof(uint32_t));
   for (uint32_t char_idx = 1; char_idx <= max_val_ + 1; ++char_idx) {
     char_counts_[char_idx] = char_counts_[char_idx - 1] + Rank(char_idx - 1, size_);
+    assert(char_counts_[char_idx] <= size_);
   }
+  assert(char_counts_[max_val_ + 1] == size_);
 }
 
 

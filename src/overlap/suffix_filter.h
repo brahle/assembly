@@ -97,7 +97,8 @@ class BFSSuffixFilter : public SuffixFilter {
       uint32_t high,
       uint32_t pos,
       uint32_t error,
-      BFSQueue& queue);
+      BFSQueue& queue,
+      bool can_inc);
 
   std::unordered_set<uint32_t> contained_;
   BFSMap state_dist_;

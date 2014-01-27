@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 CXX=g++
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -O3 
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -O3 #-g -ggdb
 LDFLAGS=
 # Sources.
 SRCDIR=.

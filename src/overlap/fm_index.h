@@ -39,9 +39,9 @@ class BucketedFMIndex : public FMIndex {
  private:
   void Init();
 
-
   // BWT string and it's size.
   const std::unique_ptr<const String> bwt_;
+  const uint8_t* bwt_data_;
   // Cumulative sum of total char counts.
   uint32_t* const char_counts_;
   // Bucket count data.
