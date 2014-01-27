@@ -1,5 +1,5 @@
-#ifndef _UNITIGGING_H_
-#define _UNITIGGING_H_
+#ifndef LAYOUT_UNITIGGING_H_
+#define LAYOUT_UNITIGGING_H_
 
 #include <overlap/read.h>
 #include <overlap/overlap.h>
@@ -34,5 +34,6 @@ class Unitigging {
   void makeContigs();
 };
 
-}
-#endif /* _UNITIGGING_H_ */
+}  // namespace layout
+
+#endif  // LAYOUT_UNITIGGING_H_

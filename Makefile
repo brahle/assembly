@@ -63,3 +63,6 @@ valgrind: $(EXE)
 
 run: $(EXE) $(BUILD_NUMBER_FILE)
 	@bin/$(EXE)
+
+lint:
+	cpplint --root=src --filter=-legal/copyright,-readability/braces src/*.cpp src/layout/*.cpp src/layout/*.h

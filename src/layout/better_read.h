@@ -1,9 +1,8 @@
-#ifndef _BETTER_READ_H_
-#define _BETTER_READ_H_
+#ifndef LAYOUT_BETTER_READ_H_
+#define LAYOUT_BETTER_READ_H_
 
 #include <overlap/read.h>
 #include <layout/better_overlap.h>
-
 #include <vector>
 #include <utility>
 
@@ -15,7 +14,7 @@ class BetterRead {
   typedef std::vector< std::pair< uint32_t, BetterOverlapPtr > > OverlapVector;
 
  public:
-  BetterRead(uint32_t id);
+  explicit BetterRead(uint32_t id);
   BetterRead(uint32_t id, ReadPtr read);
   virtual ~BetterRead();
 
@@ -37,7 +36,7 @@ class BetterReadSet {
   typedef overlap::ReadSet* ReadSetPtr;
   typedef BetterRead* BetterReadPtr;
  public:
-  BetterReadSet(size_t size);
+  explicit BetterReadSet(size_t size);
   BetterReadSet(ReadSetPtr read_set, bool master);
   virtual ~BetterReadSet();
 
@@ -51,6 +50,6 @@ class BetterReadSet {
   bool master_;
 };
 
-};
+};  // namespace layout
 
-#endif /* _BETTER_READ_H_ */
+#endif  // LAYOUT_BETTER_READ_H_

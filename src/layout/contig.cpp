@@ -1,4 +1,4 @@
-#include "contig.h"
+#include "layout/contig.h"
 
 namespace layout {
 
@@ -61,4 +61,4 @@ ContigSet::~ContigSet() {
   }
 }
 
-};
+};  // namespace layout

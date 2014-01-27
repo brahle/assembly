@@ -1,9 +1,16 @@
-#ifndef OVERLAP_UNIONFIND_H_
-#define OVERLAP_UNIONFIND_H_
+#ifndef LAYOUT_UNION_FIND_H_
+#define LAYOUT_UNION_FIND_H_
 
 namespace layout {
 
 class UnionFind {
+ public:
+  explicit UnionFind(int n) { data_ = new Node[n]; }
+  ~UnionFind() { delete [] data_; }
+
+  int find(int x);
+  int join(int x, int y);
+ private:
   struct Node {
     int value_;
     int count_;
@@ -15,18 +22,9 @@ class UnionFind {
   };
 
   Node *data_;
-public:
-  UnionFind(int n) {
-    data_ = new Node[n];
-  }
-
-  ~UnionFind() { delete [] data_; }
-
-  int find(int x);
-  bool join(int x, int y);
 };
 
-}
+}  // namespace layout
 
-#endif
+#endif  // LAYOUT_UNION_FIND_H_
 

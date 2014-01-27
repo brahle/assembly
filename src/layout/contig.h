@@ -1,10 +1,10 @@
-#ifndef _CONTIG_H_
-#define _CONTIG_H_
-
-#include <deque>
+#ifndef LAYOUT_CONTIG_H_
+#define LAYOUT_CONTIG_H_
 
 #include <layout/better_overlap.h>
 #include <layout/better_read.h>
+#include <deque>
+#include <vector>
 
 namespace layout {
 
@@ -26,16 +26,15 @@ class Contig {
   void Kill();
 };
 
-class ContigSet
-{
+class ContigSet {
   typedef Contig* ContigPtr;
  public:
-  ContigSet(BetterReadSet* read_set);
+  explicit ContigSet(BetterReadSet* read_set);
   virtual ~ContigSet();
  private:
   std::vector< ContigPtr > contigs_;
 };
 
-}
+}  // namespace layout
 
-#endif /* _CONTIG_H_ */
+#endif  // LAYOUT_CONTIG_H_

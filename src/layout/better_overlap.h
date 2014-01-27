@@ -1,11 +1,10 @@
-#ifndef _BETTER_OVERLAP_H_
-#define _BETTER_OVERLAP_H_
-
-#include <cassert>
-#include <vector>
+#ifndef LAYOUT_BETTER_OVERLAP_H_
+#define LAYOUT_BETTER_OVERLAP_H_
 
 #include <overlap/read.h>
 #include <overlap/overlap.h>
+#include <cassert>
+#include <vector>
 
 namespace layout {
 
@@ -43,7 +42,7 @@ class BetterOverlap {
 class BetterOverlapSet {
   typedef BetterOverlap* BetterOverlapPtr;
  public:
-  BetterOverlapSet(overlap::ReadSet* read_set);
+  explicit BetterOverlapSet(overlap::ReadSet* read_set);
   BetterOverlapSet(
       overlap::ReadSet* read_set,
       overlap::OverlapSet* overlap_set);
@@ -63,6 +62,6 @@ class BetterOverlapSet {
   std::vector< BetterOverlapPtr > overlaps_;
 };
 
-};
+};  // namespace layout
 
-#endif /* _BETTER_OVERLAP_H_ */
+#endif  // LAYOUT_BETTER_OVERLAP_H_

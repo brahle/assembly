@@ -1,4 +1,4 @@
-#include "better_overlap.h"
+#include "layout/better_overlap.h"
 
 namespace layout {
 
@@ -97,4 +97,4 @@ void BetterOverlapSet::Add(overlap::Overlap* overlap) {
   overlaps_.emplace_back(new BetterOverlap(overlap, read_set_));
 }
 
-};
+};  // namespace layout

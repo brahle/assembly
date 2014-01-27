@@ -1,4 +1,4 @@
-#include "better_read.h"
+#include "layout/better_read.h"
 
 #include <algorithm>
 
@@ -12,7 +12,7 @@ BetterRead::BetterRead(uint32_t id, ReadPtr read) :
 }
 
 BetterRead::~BetterRead() {
-  // TODO: mozda trebas zbrisati?
+  // TODO(brahle): mozda trebas zbrisati?
 }
 
 void BetterRead::AddOverlap(BetterOverlapPtr overlap) {
@@ -35,7 +35,7 @@ BetterReadSet::BetterReadSet(size_t size) :
     master_(true) {
 }
 
-BetterReadSet::BetterReadSet(ReadSetPtr read_set, bool master=false) :
+BetterReadSet::BetterReadSet(ReadSetPtr read_set, bool master = false) :
     read_set_(),
     master_(master) {
   for (size_t idx = 0; idx < read_set->size(); ++idx) {
@@ -49,12 +49,12 @@ BetterReadSet::~BetterReadSet() {
   }
 }
 
-BetterReadSet::BetterReadPtr& BetterReadSet::operator[](size_t idx) {
-  return read_set_[idx];
+BetterReadSet::BetterReadPtr& BetterReadSet::operator[](size_t i) {
+  return read_set_[i];
 }
 
-const BetterReadSet::BetterReadPtr& BetterReadSet::operator[](size_t idx) const {
-  return read_set_[idx];
+const BetterReadSet::BetterReadPtr& BetterReadSet::operator[](size_t i) const {
+  return read_set_[i];
 }
 
 const size_t BetterReadSet::size() const {
@@ -67,4 +67,4 @@ void BetterReadSet::Finalize() {
   }
 }
 
-};
+};  // namespace layout

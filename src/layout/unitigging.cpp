@@ -1,6 +1,6 @@
-#include "unitigging.h"
-
+#include "layout/unitigging.h"
 #include <layout/union_find.h>
+#include <vector>
 
 namespace layout {
 
@@ -93,7 +93,7 @@ void Unitigging::removeTransitiveEdges() {
   for (size_t i = 0; i < no_contains_->size(); ++i) {
     auto better_overlap = (*no_contains_)[i];
     auto overlap = better_overlap->overlap();
-    // TODO: izdvoji ovo u zasebnu klasu iterator
+    // TODO(brahle): izdvoji ovo u zasebnu klasu iterator
     auto v1 = brs[overlap->read_one]->overlaps();
     auto v2 = brs[overlap->read_two]->overlaps();
     auto it1 = v1.begin();
@@ -160,10 +160,8 @@ void Unitigging::makeContigs() {
 
   size_t cnt = 0;
 
-
-
   delete [] degrees;
 }
 
-};
+};  // namespace layout
 
