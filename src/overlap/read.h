@@ -12,8 +12,6 @@
 namespace overlap {
 
 
-const uint8_t* ReverseComplement(const uint8_t* data, size_t size);
-
 class String {
 public:
   String(const uint8_t* data, size_t size);
@@ -35,17 +33,18 @@ public:
   Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id);
   ~Read();
 
-  void Print(FILE* fd) const;
-
-  const uint8_t* data_rc() const;
   uint32_t id() const;
   uint32_t orig_id() const;
 
 private:
-  const uint8_t* data_rc_;
   const uint32_t id_;
   const uint32_t orig_id_;
 };
+
+const uint8_t* ReverseComplement(const uint8_t* data, size_t size);
+Read* ReverseComplement(const Read& read);
+
+void PrintRead(FILE* fd, const Read& read);
 
 class ReadSet {
 public:

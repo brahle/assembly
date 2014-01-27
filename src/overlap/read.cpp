@@ -8,15 +8,6 @@
 namespace overlap {
 
 
-const uint8_t* ReverseComplement(const uint8_t* data, size_t size) {
-  uint8_t* data_rc = new uint8_t[size + 1];
-  data_rc[size] = '\0';
-  for (uint32_t idx = 0; idx < size; ++idx) {
-    data_rc[idx] = 4 - data[idx];
-  }
-  return data_rc;
-}
-
 String::String(const uint8_t* data, size_t size)
     : data_(data), size_(size) {
 }
@@ -43,24 +34,11 @@ bool String::operator< (const String& other) const {
 
 Read::Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id)
     : String(data, size),
-      data_rc_(ReverseComplement(data, size)),
       id_(id),
       orig_id_(orig_id) {
 }
 
 Read::~Read() {
-  delete[] data_rc_;
-}
-
-void Read::Print(FILE* fd) const {
-  for (uint32_t idx = 0; idx < size_; ++idx) {
-    fprintf(fd, "%c", (char)data_[idx] + 'A');
-  }
-  fprintf(fd, "\n");
-}
-
-const uint8_t* Read::data_rc() const {
-  return data_rc_;
 }
 
 uint32_t Read::id() const {
@@ -69,6 +47,30 @@ uint32_t Read::id() const {
 
 uint32_t Read::orig_id() const {
   return orig_id_;
+}
+
+const uint8_t* ReverseComplement(const uint8_t* data, size_t size) {
+  uint8_t* data_rc = new uint8_t[size + 1];
+  data_rc[size] = '\0';
+  for (uint32_t idx = 0; idx < size; ++idx) {
+    data_rc[size - idx - 1] = 4 - data[idx];
+  }
+  return data_rc;
+}
+
+Read* ReverseComplement(const Read& read) {
+  return new Read(
+      ReverseComplement(read.data(), read.size()),
+      read.size(),
+      read.id(),
+      read.orig_id());
+}
+
+void PrintRead(FILE* fd, const Read& read) {
+  for (uint32_t idx = 0; idx < read.size(); ++idx) {
+    fprintf(fd, "%c", (char)read[idx] + 'A');
+  }
+  fprintf(fd, "\n");
 }
 
 ReadSet::ReadSet(size_t capacity) {

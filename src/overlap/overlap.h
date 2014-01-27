@@ -19,12 +19,12 @@ struct Overlap {
 
   bool operator<(const Overlap& rhs) const;
 
-  const uint32_t read_one;
-  const uint32_t read_two;
-  const uint32_t len_one;
-  const uint32_t len_two;
-  const Type type;
-  const int32_t score;
+  uint32_t read_one;
+  uint32_t read_two;
+  uint32_t len_one;
+  uint32_t len_two;
+  Type type;
+  int32_t score;
 };
 
 class OverlapCmp : public std::binary_function<Overlap*, Overlap*, bool> {
