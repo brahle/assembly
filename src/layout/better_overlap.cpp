@@ -47,6 +47,7 @@ const uint32_t BetterOverlap::Length(uint32_t read) const {
 }
 
 const uint32_t BetterOverlap::Suf(uint32_t read) const {
+  assert(overlap_ != nullptr);
   assert(read == overlap_->read_one || read == overlap_->read_two);
   if (read == overlap_->read_one) {
     return
@@ -56,6 +57,15 @@ const uint32_t BetterOverlap::Suf(uint32_t read) const {
   return
       overlap_->type == overlap::Overlap::Type::BE ||
       overlap_->type == overlap::Overlap::Type::EE;
+}
+
+const uint32_t BetterOverlap::Other(uint32_t read) const {
+  assert(overlap_ != nullptr);
+  assert(read == overlap_->read_one || read == overlap_->read_two);
+  if (read == overlap_->read_one) {
+    return overlap_->read_two;
+  }
+  return overlap_->read_one;
 }
 
 BetterOverlapSet::BetterOverlapSet(overlap::ReadSet* read_set) :

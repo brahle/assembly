@@ -28,6 +28,7 @@ class BetterOverlap {
   const uint32_t Length() const;
   const uint32_t Length(uint32_t read) const;
   const uint32_t Suf(uint32_t read) const;
+  const uint32_t Other(uint32_t read) const;
 
  private:
   OverlapPtr overlap_;
