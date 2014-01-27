@@ -15,12 +15,14 @@ Unitigging::Unitigging(
       orig_overlaps_(overlaps),
       overlaps_(reads, overlaps),
       no_contains_(nullptr),
-      no_transitives_(nullptr) {
+      no_transitives_(nullptr),
+      contigs_(nullptr) {
 }
 
 Unitigging::~Unitigging() {
   delete no_contains_;
   delete no_transitives_;
+  delete contigs_;
 }
 
 void Unitigging::start() {
@@ -144,7 +146,9 @@ void Unitigging::makeContigs() {
   }
 
   UnionFind uf(reads_->size());
-  std::vector< size_t > remaining;
+  BetterReadSet brs(reads_, 1);
+  contigs_ = new ContigSet(&brs);
+
   for (size_t i = 0; i < no_transitives_->size(); ++i) {
     auto better_overlap = (*no_transitives_)[i];
     auto overlap = better_overlap->overlap();
@@ -152,13 +156,14 @@ void Unitigging::makeContigs() {
     auto read_two = overlap->read_two;
     if (degrees[read_one][better_overlap->Suf(read_one)] == 1 &&
         degrees[read_two][better_overlap->Suf(read_two)] == 1) {
-      uf.join(read_one, read_two);
-    } else {
-      remaining.emplace_back(i);
+      auto larger = uf.join(read_one, read_two);
+      if (larger == read_one) {
+        (*contigs_)[read_one]->Join(better_overlap, (*contigs_)[read_two]);
+      } else {
+        (*contigs_)[read_two]->Join(better_overlap, (*contigs_)[read_one]);
+      }
     }
   }
-
-  size_t cnt = 0;
 
   delete [] degrees;
 }

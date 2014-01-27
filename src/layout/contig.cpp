@@ -10,6 +10,7 @@ Contig::Contig(BetterReadPtr starting, BetterReadSetPtr read_set) :
 Contig::~Contig() {
 }
 
+// TODO(brahle): ovo je spora metoda spajanja
 void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
   assert(alive_);
   assert(contig->alive_);
@@ -59,6 +60,18 @@ ContigSet::~ContigSet() {
   for (auto contig : contigs_) {
     delete contig;
   }
+}
+
+size_t ContigSet::size() const {
+  return contigs_.size();
+}
+
+ContigSet::ContigPtr& ContigSet::operator[](int i) {
+  return contigs_[i];
+}
+
+const ContigSet::ContigPtr& ContigSet::operator[](int i) const {
+  return contigs_[i];
 }
 
 };  // namespace layout

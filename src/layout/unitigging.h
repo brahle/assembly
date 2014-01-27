@@ -6,6 +6,7 @@
 
 #include <layout/better_overlap.h>
 #include <layout/better_read.h>
+#include <layout/contig.h>
 
 namespace layout {
 
@@ -21,9 +22,10 @@ class Unitigging {
  private:
   overlap::ReadSet* reads_;
   overlap::OverlapSet* orig_overlaps_;
-  layout::BetterOverlapSet overlaps_;
-  layout::BetterOverlapSet* no_contains_;
-  layout::BetterOverlapSet* no_transitives_;
+  BetterOverlapSet overlaps_;
+  BetterOverlapSet* no_contains_;
+  BetterOverlapSet* no_transitives_;
+  ContigSet* contigs_;
 
   void removeContainmentEdges();
   bool isTransitive(

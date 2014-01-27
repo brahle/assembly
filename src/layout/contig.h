@@ -31,6 +31,11 @@ class ContigSet {
  public:
   explicit ContigSet(BetterReadSet* read_set);
   virtual ~ContigSet();
+
+  size_t size() const;
+  ContigPtr& operator[](int i);
+  const ContigPtr& operator[](int i) const;
+
  private:
   std::vector< ContigPtr > contigs_;
 };
