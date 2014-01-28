@@ -1,7 +1,7 @@
 default: run
 
 INCLUDE=./src
-VPATH=src:src/layout:src/overlap:bin
+VPATH=src:src/layout:src/overlap:src/test:bin
 
 # these headers are different. first, they don't exists
 # but *.hpp files exists. it means that they contain template
@@ -13,8 +13,6 @@ OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_arr
 OBJ_SPECIAL=sais.o
 ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
-TEST=
-
 EXE=main_layout
 
 include buildnumber.mak
@@ -25,11 +23,13 @@ OPTIMIZATION_FLAGS=-flto -finline-limit=200
 ASORTED_FLAGS=-std=c++11
 WARINIG_FLAGS=-Wall -Wextra -pedantic -Werror
 FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDFLAGS)
-DEBUG_FLAGS=-g -ggdb -pg
+DEBUG_FLAGS=-g -ggdb
 NODEBUG_FLAGS=-s -O3 -DNDEBUG
 
 CC=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
 CCE=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)
+
+TEST=unitigging_test
 
 clean:
 	rm bin/*
@@ -54,15 +54,21 @@ $(TEST): %: src/test/%.cpp $(ALL_OBJ)
 # $(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
 # 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
 # 	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
-$(EXE): src/$(EXE).cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
+$(EXE): %: src/%.cpp $(ALL_OBJ) $(BUILD_NUMBER_FILE)
 	@/bin/echo -e "\e[34m  LINK $@ \033[0m"
 	@$(CC) $< $(patsubst %,bin/%,$(ALL_OBJ)) -o bin/$@
 
-valgrind: $(EXE)
-	valgrind bin/$(EXE)
+valgrind: main_layout
+	valgrind bin/main_layout
 
 run: $(EXE) $(BUILD_NUMBER_FILE)
-	@bin/$(EXE)
+	@bin/main_layout
 
 lint:
 	cpplint --root=src --filter=-legal/copyright,-readability/braces src/*.cpp src/layout/*.cpp src/layout/*.h
+
+test: $(TEST)
+	@for t in $(TEST) ; do \
+		/bin/echo -e "\e[34m$$t\033[0m" ; \
+		bin/$$t ; \
+	done

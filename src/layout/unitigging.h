@@ -8,6 +8,11 @@
 #include <layout/better_read.h>
 #include <layout/contig.h>
 
+namespace test {
+class UnitiggingTest;
+class UnitiggingIsTransitiveTest;
+};  // namespace test
+
 namespace layout {
 
 class Unitigging {
@@ -34,6 +39,9 @@ class Unitigging {
       BetterOverlap* o3) const;
   void removeTransitiveEdges();
   void makeContigs();
+
+  friend test::UnitiggingTest;
+  friend test::UnitiggingIsTransitiveTest;
 };
 
 }  // namespace layout

@@ -63,9 +63,9 @@ bool Unitigging::isTransitive(
   if (C == A) {
     C = o2->overlap()->read_two;
   }
-  if (o1->Suf(A) == o3->Suf(C)) return false;
+  if (o2->Suf(C) == o3->Suf(C)) return false;
   if (o1->Suf(A) != o2->Suf(A)) return false;
-  if (o2->Suf(B) != o3->Suf(B)) return false;
+  if (o1->Suf(B) != o3->Suf(B)) return false;
   if (!eq(
           o2->Hang(A) + o3->Hang(C),
           o1->Hang(A),
