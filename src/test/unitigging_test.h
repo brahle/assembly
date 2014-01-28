@@ -23,6 +23,20 @@ class UnitiggingIsTransitiveTest : public UnitiggingTest {
   virtual bool run();
 };
 
+class UnitiggingContainmentTest : public UnitiggingTest {
+ public:
+  UnitiggingContainmentTest();
+  virtual ~UnitiggingContainmentTest();
+  virtual bool run();
+};
+
+class UnitiggingTransitiveTest : public UnitiggingTest {
+ public:
+  UnitiggingTransitiveTest();
+  virtual ~UnitiggingTransitiveTest();
+  virtual bool run();
+};
+
 class UnitiggingTestRunner {
  public:
   UnitiggingTestRunner();

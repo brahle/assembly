@@ -5,6 +5,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <typeinfo>
 
 namespace test {
 
@@ -18,7 +19,7 @@ overlap::Read* UnitiggingTest::makeRead(const char* data) {
   size_t len = strlen(data);
   uint8_t* uint_data = new uint8_t[len];
   memcpy(uint_data, data, len);
-  return new overlap::Read(uint_data, len);
+  return new overlap::Read(uint_data, len-1);
 }
 
 UnitiggingIsTransitiveTest::UnitiggingIsTransitiveTest() {
@@ -37,19 +38,73 @@ bool UnitiggingIsTransitiveTest::run() {
   overlap_set.Add(new overlap::Overlap(1, 2, 15, 15, overlap::Overlap::Type::EB, 15));
   overlap_set.Add(new overlap::Overlap(0, 2, 7, 7, overlap::Overlap::Type::EB, 7));
   overlap_set.Add(new overlap::Overlap(2, 0, 3, 3, overlap::Overlap::Type::EB, 3));
-  layout::Unitigging unitigging(&read_set, &overlap_set);
-  if (!unitigging.isTransitive(
-          unitigging.overlaps_[2],
-          unitigging.overlaps_[0],
-          unitigging.overlaps_[1])) {
+  layout::Unitigging* unitigging = new layout::Unitigging(&read_set, &overlap_set);
+  if (!unitigging->isTransitive(
+          unitigging->overlaps_[2],
+          unitigging->overlaps_[0],
+          unitigging->overlaps_[1])) {
+    delete unitigging;
     return false;
   }
-  if (unitigging.isTransitive(
-          unitigging.overlaps_[3],
-          unitigging.overlaps_[1],
-          unitigging.overlaps_[0])) {
+  if (unitigging->isTransitive(
+          unitigging->overlaps_[3],
+          unitigging->overlaps_[1],
+          unitigging->overlaps_[0])) {
+    delete unitigging;
     return false;
   }
+  delete unitigging;
+  return true;
+}
+
+UnitiggingContainmentTest::UnitiggingContainmentTest() {
+}
+
+UnitiggingContainmentTest::~UnitiggingContainmentTest() {
+}
+
+bool UnitiggingContainmentTest::run() {
+  overlap::ReadSet read_set(3);
+  read_set.Add(makeRead("AAAAAAAAAABBBBBBBBBBBCCCCCCC"));
+  read_set.Add(makeRead("BBBBBBBBBBCCCCCC"));
+  read_set.Add(makeRead("CCCCCCCCCCDDDDDDDDDDDAAA"));
+  overlap::OverlapSet overlap_set(3);
+  overlap_set.Add(new overlap::Overlap(0, 1, 15, 15, overlap::Overlap::Type::EB, 15));
+  overlap_set.Add(new overlap::Overlap(1, 2, 5, 5, overlap::Overlap::Type::EB, 5));
+  overlap_set.Add(new overlap::Overlap(0, 2, 7, 7, overlap::Overlap::Type::EB, 7));
+  layout::Unitigging* unitigging = new layout::Unitigging(&read_set, &overlap_set);
+  unitigging->removeContainmentEdges();
+  if (unitigging->no_contains_->size() != 1) {
+    delete unitigging;
+    return false;
+  }
+  delete unitigging;
+  return true;
+}
+
+UnitiggingTransitiveTest::UnitiggingTransitiveTest() {
+}
+
+UnitiggingTransitiveTest::~UnitiggingTransitiveTest() {
+}
+
+bool UnitiggingTransitiveTest::run() {
+  overlap::ReadSet read_set(3);
+  read_set.Add(makeRead("AAAAAAAAAABBBBBBBBBBBCCCCCCC"));
+  read_set.Add(makeRead("BBBBBBBBBBCCCCCCCCCCCDDDDD"));
+  read_set.Add(makeRead("CCCCCCCCCCDDDDDDDDDDDAAA"));
+  overlap::OverlapSet overlap_set(3);
+  overlap_set.Add(new overlap::Overlap(0, 1, 17, 17, overlap::Overlap::Type::EB, 17));
+  overlap_set.Add(new overlap::Overlap(1, 2, 15, 15, overlap::Overlap::Type::EB, 15));
+  overlap_set.Add(new overlap::Overlap(0, 2, 7, 7, overlap::Overlap::Type::EB, 7));
+  layout::Unitigging* unitigging = new layout::Unitigging(&read_set, &overlap_set);
+  unitigging->removeContainmentEdges();
+  unitigging->removeTransitiveEdges();
+  if (unitigging->no_transitives_->size() != 2) {
+    delete unitigging;
+    return false;
+  }
+  delete unitigging;
   return true;
 }
 
@@ -67,8 +122,14 @@ void UnitiggingTestRunner::run() {
   int successful = 0;
 
   for (auto test : tests_) {
+    bool result = test->run();
+    if (result == false) {
+      fprintf(stderr, "\e[31mFAILED: %s\033[m\n", typeid(*test).name());
+    } else {
+      fprintf(stderr, "\e[32m%s OK!\033[m\n", typeid(*test).name());
+    }
     total += 1;
-    successful += test->run();
+    successful += result;
   }
 
   if (total == successful) {
@@ -94,6 +155,8 @@ int main() {
   int total = 0;
   test::UnitiggingTestRunner ut;
   ut.addTest(new test::UnitiggingIsTransitiveTest());
+  ut.addTest(new test::UnitiggingContainmentTest());
+  ut.addTest(new test::UnitiggingTransitiveTest());
   ut.run();
 
   return 0;

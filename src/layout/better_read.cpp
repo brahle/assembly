@@ -16,7 +16,7 @@ BetterRead::~BetterRead() {
 }
 
 void BetterRead::AddOverlap(BetterOverlapPtr overlap) {
-  overlaps_.emplace_back(0, overlap);
+  overlaps_.emplace_back(overlap->Other(id_), overlap);
 }
 
 void BetterRead::Finalize() {

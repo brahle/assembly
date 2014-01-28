@@ -1,5 +1,6 @@
 #include "layout/unitigging.h"
 #include <layout/union_find.h>
+#include <cstring>
 #include <vector>
 
 namespace layout {
@@ -33,6 +34,7 @@ void Unitigging::start() {
 
 void Unitigging::removeContainmentEdges() {
   bool *erased = new bool[reads_->size()];
+  memset(erased, 0, sizeof(bool) * reads_->size());
   for (size_t i = 0; i < overlaps_.size(); ++i) {
     BetterOverlap* better_overlap = overlaps_[i];
     overlap::Overlap* overlap = better_overlap->overlap();
@@ -48,7 +50,7 @@ void Unitigging::removeContainmentEdges() {
     overlap::Overlap* overlap = better_overlap->overlap();
     if (erased[overlap->read_one]) continue;
     if (erased[overlap->read_two]) continue;
-    no_contains_->Add(better_overlap);
+    no_contains_->Add(new BetterOverlap(better_overlap));
   }
   delete [] erased;
 }
@@ -101,10 +103,19 @@ void Unitigging::removeTransitiveEdges() {
     auto it1 = v1.begin();
     auto it2 = v2.begin();
     while (it1 != v1.end() && it2 != v2.end()) {
+      if (it1->first == overlap->read_one || it1->first == overlap->read_two) {
+        ++it1;
+        continue;
+      }
+      if (it2->first == overlap->read_one || it2->first == overlap->read_two) {
+        ++it2;
+        continue;
+      }
       if (it1->first == it2->first) {
         if (isTransitive(better_overlap, it1->second, it2->second)) {
           erased.emplace_back(i);
         }
+        ++it1;
         ++it2;
       } else if (it1->first < it2->first) {
         ++it1;
@@ -122,7 +133,7 @@ void Unitigging::removeTransitiveEdges() {
       continue;
     }
     auto better_overlap = (*no_contains_)[i];
-    no_transitives_->Add(better_overlap);
+    no_transitives_->Add(new BetterOverlap(better_overlap));
   }
 }
 

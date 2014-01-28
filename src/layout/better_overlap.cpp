@@ -12,7 +12,13 @@ BetterOverlap::BetterOverlap(
     read_set_(read_set) {
 }
 
-BetterOverlap::~BetterOverlap() {}
+BetterOverlap::BetterOverlap(BetterOverlap* other) :
+    overlap_(other->overlap_),
+    read_set_(other->read_set_) {
+}
+
+BetterOverlap::~BetterOverlap() {
+}
 
 const overlap::Read* BetterOverlap::one() const {
   return read_set_->Get(overlap_->read_one);
@@ -79,14 +85,15 @@ BetterOverlapSet::BetterOverlapSet(
     read_set_(read_set),
     overlaps_() {
   for (size_t i = 0; i < overlap_set->size(); ++i) {
-    overlaps_.emplace_back(new BetterOverlap((*overlap_set)[i], read_set_));
+    overlaps_.push_back(new BetterOverlap((*overlap_set)[i], read_set_));
   }
 }
 
 BetterOverlapSet::~BetterOverlapSet() {
-  for (auto &o : overlaps_) {
-    delete o;
+  for (size_t i = 0; i < overlaps_.size(); ++i) {
+    delete overlaps_[i];
   }
+  overlaps_.clear();
 }
 
 void BetterOverlapSet::Add(BetterOverlapPtr overlap) {
