@@ -16,10 +16,11 @@ inline bool eq(double x, double y, double eps);
 class BetterOverlap {
   typedef overlap::ReadSet* ReadSetPtr;
   typedef overlap::Overlap* OverlapPtr;
+
  public:
   BetterOverlap();
   BetterOverlap(OverlapPtr overlap, ReadSetPtr read_set);
-  BetterOverlap(BetterOverlap* other);
+  explicit BetterOverlap(BetterOverlap* other);
   virtual ~BetterOverlap();
 
   const OverlapPtr& overlap() const { return overlap_; }

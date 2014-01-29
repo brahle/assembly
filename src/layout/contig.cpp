@@ -50,6 +50,10 @@ void Contig::Kill() {
   reads_.clear();
 }
 
+size_t Contig::size() const {
+  return reads_.size();
+}
+
 ContigSet::ContigSet(BetterReadSet* read_set) : contigs_(read_set->size()) {
   for (size_t i = 0; i < read_set->size(); ++i) {
     contigs_[i] = new Contig((*read_set)[i], read_set);

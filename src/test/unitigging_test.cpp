@@ -108,6 +108,33 @@ bool UnitiggingTransitiveTest::run() {
   return true;
 }
 
+UnitiggingContigTest::UnitiggingContigTest() {
+}
+
+UnitiggingContigTest::~UnitiggingContigTest() {
+}
+
+bool UnitiggingContigTest::run() {
+  overlap::ReadSet read_set(2);
+  read_set.Add(makeRead("AAAAAAAAAABBBBBBBBBBBCCCCCCC"));
+  read_set.Add(makeRead("BBBBBBBBBBCCCCCCCCCCCDDDDD"));
+  overlap::OverlapSet overlap_set(1);
+  overlap_set.Add(new overlap::Overlap(0, 1, 17, 17, overlap::Overlap::Type::EB, 17));
+  layout::Unitigging* unitigging = new layout::Unitigging(&read_set, &overlap_set);
+  unitigging->removeContainmentEdges();
+  unitigging->removeTransitiveEdges();
+  unitigging->makeContigs();
+  int contig_sizes[2] = {2, 0};
+  for (int i = 0; i < unitigging->contigs_->size(); ++i) {
+    auto contig = (*(unitigging->contigs_))[i];
+    if (contig->size() != contig_sizes[i]) {
+      return false;
+    }
+  }
+  delete unitigging;
+  return true;
+}
+
 UnitiggingTestRunner::UnitiggingTestRunner() {
 }
 
@@ -157,6 +184,7 @@ int main() {
   ut.addTest(new test::UnitiggingIsTransitiveTest());
   ut.addTest(new test::UnitiggingContainmentTest());
   ut.addTest(new test::UnitiggingTransitiveTest());
+  ut.addTest(new test::UnitiggingContigTest());
   ut.run();
 
   return 0;

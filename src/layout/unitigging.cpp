@@ -167,15 +167,20 @@ void Unitigging::makeContigs() {
     auto read_two = overlap->read_two;
     if (degrees[read_one][better_overlap->Suf(read_one)] == 1 &&
         degrees[read_two][better_overlap->Suf(read_two)] == 1) {
+      auto contig_one = uf.find(read_one);
+      auto contig_two = uf.find(read_two);
       auto larger = uf.join(read_one, read_two);
       if (larger == read_one) {
-        (*contigs_)[read_one]->Join(better_overlap, (*contigs_)[read_two]);
+        (*contigs_)[contig_one]->Join(better_overlap, (*contigs_)[read_two]);
       } else {
-        (*contigs_)[read_two]->Join(better_overlap, (*contigs_)[read_one]);
+        (*contigs_)[contig_two]->Join(better_overlap, (*contigs_)[read_one]);
       }
     }
   }
 
+  for (size_t i = 0; i < reads_->size(); ++i) {
+    delete [] degrees[i];
+  }
   delete [] degrees;
 }
 

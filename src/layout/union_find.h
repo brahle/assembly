@@ -5,8 +5,8 @@ namespace layout {
 
 class UnionFind {
  public:
-  explicit UnionFind(int n) { data_ = new Node[n]; }
-  ~UnionFind() { delete [] data_; }
+  explicit UnionFind(int n);
+  ~UnionFind();
 
   int find(int x);
   int join(int x, int y);

@@ -16,6 +16,7 @@ class Contig {
   Contig(BetterReadPtr starting, BetterReadSetPtr read_set);
   virtual ~Contig();
 
+  size_t size() const;
   void Join(BetterOverlapPtr better_overlap, Contig* contig);
 
  private:

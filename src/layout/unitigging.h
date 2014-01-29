@@ -13,6 +13,7 @@ class UnitiggingTest;
 class UnitiggingIsTransitiveTest;
 class UnitiggingContainmentTest;
 class UnitiggingTransitiveTest;
+class UnitiggingContigTest;
 };  // namespace test
 
 namespace layout {
@@ -46,6 +47,7 @@ class Unitigging {
   friend test::UnitiggingIsTransitiveTest;
   friend test::UnitiggingContainmentTest;
   friend test::UnitiggingTransitiveTest;
+  friend test::UnitiggingContigTest;
 };
 
 }  // namespace layout

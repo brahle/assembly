@@ -2,6 +2,17 @@
 
 namespace layout {
 
+UnionFind::UnionFind(int n) {
+  data_ = new Node[n];
+  for (int i = 0; i < n; ++i) {
+    data_[i] = Node(i, i);
+  }
+}
+
+UnionFind::~UnionFind() {
+  delete [] data_;
+}
+
 int UnionFind::find(int x) {
   if (x == data_[x].parent_) {
     return x;

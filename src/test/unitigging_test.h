@@ -37,6 +37,13 @@ class UnitiggingTransitiveTest : public UnitiggingTest {
   virtual bool run();
 };
 
+class UnitiggingContigTest : public UnitiggingTest {
+ public:
+  UnitiggingContigTest();
+  virtual ~UnitiggingContigTest();
+  virtual bool run();
+};
+
 class UnitiggingTestRunner {
  public:
   UnitiggingTestRunner();
