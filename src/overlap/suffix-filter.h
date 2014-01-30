@@ -93,11 +93,9 @@ class BFSSuffixFilter : public SuffixFilter {
     typedef std::queue<State> StateQueue;
     typedef std::unordered_map<State, uint32_t, StateHash, StateEqual> StateMap;
 
-    void CheckOverlaps(
-        uint32_t low,
-        uint32_t high,
+    inline void CheckOverlaps(
+        State state,
         uint32_t start,
-        uint32_t pos,
         uint32_t error);
 
     void Queue(

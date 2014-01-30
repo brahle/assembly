@@ -7,8 +7,8 @@ VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test
 # Compiler and linker settings.
 CXX=g++
 # Targets.
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src
-LDFLAGS=-L$(PROJDIR)/lib
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PROJDIR)/include
+LDFLAGS=-L$(PROJDIR)/lib -lgflags
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)
 SRC=read.cpp fm-index.cpp myers.cpp overlap.cpp sort.cpp suffix-array.cpp \
@@ -32,7 +32,7 @@ dev : CFLAGS += -DDEBUG -g
 dev : $(BIN)
 
 # Linking options.
-$(BDIR)/olapper : OBJ += $(ODIR)/main.o
+$(BDIR)/olapper : OBJ := $(ODIR)/main.o $(OBJ)
 $(BDIR)/olapper : $(OBJ)
 
 $(BDIR)/olapper_test : LDFLAGS += -lgtest_main -lgtest -lpthread
@@ -40,12 +40,12 @@ $(BDIR)/olapper_test : OBJ += $(TEST_OBJ)
 
 # Linking.
 $(BIN) : $(OBJ) $(TEST_OBJ) $(ODIR)/main.o
-	$(CXX) $(LDFLAGS) -o $@ $(OBJ)
+	$(CXX) -o $@ $(OBJ) $(LDFLAGS)
 
 # Compiling options.
 $(ODIR)/sais.o : CFLAGS += -fomit-frame-pointer
 
-$(ODIR)/%_test.o : CFLAGS += -pthread -isystem $(PROJDIR)/include
+$(ODIR)/%_test.o : CFLAGS += -pthread 
 
 # Compiling.
 $(ODIR)/%.o : %.cpp

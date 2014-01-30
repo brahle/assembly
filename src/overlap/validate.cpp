@@ -3,11 +3,15 @@
 #include <map>
 #include <memory>
 
+#include <gflags/gflags.h>
+
 #include "myers.h"
 #include "overlap.h"
 #include "read.h"
 #include "validate.h"
 
+DEFINE_double(error_rate, 0.01, "");
+DEFINE_int32(error_mult, 3, "");
 
 namespace overlap {
 
@@ -22,15 +26,14 @@ uint32_t OverlapConfidence(Overlap* o) {
 
 OverlapSet* ValidateCandidates(
     const ReadSet& reads,
-    const OverlapSet& candidates,
-    const double error_rate) {
+    const OverlapSet& candidates) {
 
   typedef std::pair<uint32_t, uint32_t> Pair;
   std::map<Pair, Overlap*> best;
 
   std::unique_ptr<OverlapSet> overlaps(new OverlapSet(candidates.size()));
 
-  const double extra_ratio = 1 + (error_rate * 2);
+  const double extra_ratio = 1 + (FLAGS_error_rate * FLAGS_error_mult);
 
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
     Overlap* o = candidates[oid];
@@ -45,7 +48,7 @@ OverlapSet* ValidateCandidates(
         read_two->data(),
         std::min((int)(o->len_one * extra_ratio), (int)read_two->size()),
         5,
-        (int)(o->len_one * error_rate * 2),
+        (int)(o->len_one * FLAGS_error_rate * FLAGS_error_mult),
         MYERS_MODE_SHW,
         &score,
         &len_two);

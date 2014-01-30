@@ -140,33 +140,30 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
     std::queue<State>& curr = queue_[qid];
     std::queue<State>& next = queue_[1 - qid];
 
-    uint32_t low, high, pos;
     while(!curr.empty()) {
-      low = curr.front().low;
-      high = curr.front().high;
-      pos = curr.front().pos;
-      error = states_[curr.front()];
+      State state = curr.front();
+      uint32_t error = states_[state];
 
-      CheckOverlaps(low, high, start_pos, pos, error);
+      CheckOverlaps(state, start_pos, error);
 
-      if (error > 0 && pos <= start_pos) {
-        Queue(low, high, pos + 1, error - 1, next, true);
+      if (error > 0 && state.pos <= start_pos) {
+        Queue(state.low, state.high, state.pos + 1, error - 1, next, true);
       }
 
       uint32_t newlow, newhigh;
       for (uint8_t cix = 1; cix <= fmi_.max_val(); ++cix) {
-        newlow = fmi_.Less(cix) + fmi_.Rank(cix, low);
-        newhigh = fmi_.Less(cix) + fmi_.Rank(cix, high);
+        newlow = fmi_.Less(cix) + fmi_.Rank(cix, state.low);
+        newhigh = fmi_.Less(cix) + fmi_.Rank(cix, state.high);
         if (newlow >= newhigh) continue;
 
-        if (pos <= start_pos) {
-          if (cix == read_[start_pos - pos]) {
-            Queue(newlow, newhigh, pos + 1, error, curr, true);
+        if (state.pos <= start_pos) {
+          if (cix == read_[start_pos - state.pos]) {
+            Queue(newlow, newhigh, state.pos + 1, error, curr, true);
           } else if (error > 0) {
-            Queue(newlow, newhigh, pos + 1, error - 1, next, true);
+            Queue(newlow, newhigh, state.pos + 1, error - 1, next, true);
           }
         } else if (error > 0) {
-          Queue(newlow, newhigh, pos, error - 1, next, false);
+          Queue(newlow, newhigh, state.pos, error - 1, next, false);
         }
       }
 
@@ -180,13 +177,12 @@ void BFSSuffixFilter::BFSContext::Clear() {
   states_.clear();
 }
 
-void BFSSuffixFilter::BFSContext::CheckOverlaps(uint32_t low, uint32_t high,
-    uint32_t start, uint32_t pos, uint32_t error) {
-
-  size_t overlap_size = pos + read_.size() - start - 1;
-  if (pos >= factor_size_ && overlap_size >= min_overlap_size_) {
-    low = fmi_.Rank(0, low);
-    high = fmi_.Rank(0, high);
+void BFSSuffixFilter::BFSContext::CheckOverlaps(
+    State state, uint32_t start, uint32_t error) {
+  size_t overlap_size = state.pos + read_.size() - start - 1;
+  if (state.pos >= factor_size_ && overlap_size >= min_overlap_size_) {
+    uint32_t low = fmi_.Rank(0, state.low);
+    uint32_t high = fmi_.Rank(0, state.high);
 
     for (uint32_t idx = low; idx < high; ++idx) {
       results_->Add(

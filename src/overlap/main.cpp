@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include <gflags/gflags.h>
+
 #include "fm-index.h"
 #include "overlap.h"
 #include "read.h"
@@ -13,12 +15,14 @@
 #include "util.h"
 #include "validate.h"
 
+DECLARE_double(error_rate);
+
 int main(int argc, char* argv[]) {
+   google::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 2) {
     exit(1);
   }
 
-  double error_rate = 0.01;
   size_t min_read_size = 50;
   size_t min_overlap_size = 25;
 
@@ -59,7 +63,7 @@ int main(int argc, char* argv[]) {
 
   printf("Finding candidates.\n");
   prev = clock();
-  overlap::BFSSuffixFilter sufter(error_rate, min_overlap_size);
+  overlap::BFSSuffixFilter sufter(FLAGS_error_rate, min_overlap_size);
   std::unique_ptr<overlap::OverlapSet> candidates(
       sufter.FindCandidates(*reads, read_order, fmi));
   curr = clock();
@@ -76,7 +80,7 @@ int main(int argc, char* argv[]) {
 
   printf("Validating overlap candidates.\n");
   prev = clock();
-  candidates.reset(overlap::ValidateCandidates(*reads, *candidates, error_rate));
+  candidates.reset(overlap::ValidateCandidates(*reads, *candidates));
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
   size_t num_overlaps = candidates->size();
@@ -92,7 +96,7 @@ int main(int argc, char* argv[]) {
   FILE* fout = fopen(argv[2], "w");
   for (uint32_t oid = 0; oid < candidates->size(); ++oid) {
     const overlap::Overlap* o = candidates->Get(oid);
-    fprintf(fout, "%d %d %d %d EC %d\n",
+    fprintf(fout, "%d %d %d %d EB %d\n",
         reads->Get(o->read_one)->orig_id(),
         reads->Get(o->read_two)->orig_id(),
         o->len_one,
