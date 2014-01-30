@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "util.hpp"
 #include "ranked-bitmap.h"
 #include "wavelet-tree.h"
 
@@ -101,28 +100,6 @@ char WaveletTree::get_char_at(ullint pos, ullint& rank) const {
 
   rank = pos;
   return lo;
-}
-
-void WaveletTree::serialize(FILE* out) const {
-  ullint sz = nodes.size();
-  ::serialize(out, sz);
-  for (ullint i = 0; i < sz; ++i) {
-    nodes[i].bitmap.serialize(out);
-  }
-  ::serialize(out, alphabet_sz);
-}
-
-void WaveletTree::deserialize(FILE* in) {
-  ullint sz;
-  ::deserialize(in, sz);
-  nodes.clear();
-  if (sz > 0) {
-    nodes.resize(sz);
-    for (ullint i = 0; i < sz; ++i) {
-      nodes[i].bitmap.deserialize(in);
-    }
-  }
-  ::deserialize(in, alphabet_sz);
 }
 
 }  // namespace wavelet

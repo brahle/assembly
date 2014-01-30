@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "ranked-bitmap.h"
-#include "util.hpp"
 
 
 namespace wavelet {
@@ -106,22 +105,6 @@ ullint RankedBitmap::get_rank(bool bit, ullint pos) const {
   rank += 8 - popCnt[0xff & (bitmask[i_pos >> 3] | (~mask))];
 
   return (bit == 0) ? (rank) : (pos-rank);
-}
-
-void RankedBitmap::serialize(FILE* out) const {
-  ::serialize(out, n_elements);
-  ::serialize(out, bitmask_sz);
-  serialize_vector(out, bitmask);
-  serialize_vector(out, superbuckets);
-  serialize_vector(out, buckets);
-}
-
-void RankedBitmap::deserialize(FILE* in) {
-  ::deserialize(in, n_elements);
-  ::deserialize(in, bitmask_sz);
-  deserialize_vector(in, bitmask);
-  deserialize_vector(in, superbuckets);
-  deserialize_vector(in, buckets);
 }
 
 }  // namespace wavelet

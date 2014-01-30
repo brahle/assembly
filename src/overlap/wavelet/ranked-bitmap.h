@@ -27,9 +27,6 @@ public:
   // else         how many 1's in [0, 1, 2, ..., pos)
   ullint get_rank(bool bit, ullint pos) const;
 
-  void serialize(FILE* out) const;
-  void deserialize(FILE* in);
-
 private:
   ullint n_elements;
   ullint bitmask_sz;

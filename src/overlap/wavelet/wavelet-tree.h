@@ -26,9 +26,6 @@ public:
   // The character at position pos (+ gets the rank of it)
   char get_char_at(ullint pos, ullint& rank) const;
 
-  void serialize(FILE* out) const;
-  void deserialize(FILE* in);
-
 private:
   struct Node {
     RankedBitmap bitmap;
