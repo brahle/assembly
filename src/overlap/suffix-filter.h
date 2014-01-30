@@ -12,7 +12,7 @@
 namespace overlap {
 
 
-class FMIndex;
+class FmIndex;
 class OverlapSet;
 class Read;
 class ReadSet;
@@ -29,7 +29,7 @@ class SuffixFilter {
   virtual OverlapSet* FindCandidates(
       const ReadSet& reads,
       const UintArray& read_order,
-      const FMIndex& fmi) = 0;
+      const FmIndex& fmi) = 0;
 
   virtual OverlapSet* FilterCandidates(
       const OverlapSet& candidates) = 0;
@@ -53,7 +53,7 @@ class BFSSuffixFilter : public SuffixFilter {
   OverlapSet* FindCandidates(
       const ReadSet& reads,
       const UintArray& read_order,
-      const FMIndex& fmi);
+      const FmIndex& fmi);
 
   OverlapSet* FilterCandidates(
       const OverlapSet& candidates);
@@ -64,7 +64,7 @@ class BFSSuffixFilter : public SuffixFilter {
     BFSContext(
         const Read& read,
         const UintArray& read_order,
-        const FMIndex& fmi,
+        const FmIndex& fmi,
         size_t factor_size,
         size_t min_overlap_size,
         OverlapSet* results);
@@ -108,7 +108,7 @@ class BFSSuffixFilter : public SuffixFilter {
 
     const Read& read_;
     const UintArray& read_order_;
-    const FMIndex& fmi_;
+    const FmIndex& fmi_;
     const size_t factor_size_;
     const size_t min_overlap_size_;
 

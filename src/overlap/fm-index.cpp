@@ -3,53 +3,54 @@
 
 #include "read.h"
 #include "fm-index.h"
+#include "wavelet/wavelet-tree.h"
 
 
 namespace overlap {
 
 
-FMIndex::FMIndex(
-    const String& bwt,
+FmIndex::FmIndex(
+    String& bwt,
     size_t max_val)
     : size_(bwt.size()),
       max_val_(max_val) {
 }
 
-FMIndex::~FMIndex() {
+FmIndex::~FmIndex() {
 }
 
-size_t FMIndex::size() const {
+size_t FmIndex::size() const {
   return size_;
 }
 
-size_t FMIndex::max_val() const {
+size_t FmIndex::max_val() const {
   return max_val_;
 }
 
-BucketedFMIndex::BucketedFMIndex(
-    const String& bwt,
+BucketedFmIndex::BucketedFmIndex(
+    String& bwt,
     size_t max_val,
     size_t bucket_size)
-    : FMIndex(bwt, max_val),
+    : FmIndex(bwt, max_val),
       bwt_data_(bwt.data()),
-      char_counts_(new uint32_t[max_val_ + 2]),
+      prefix_sum_(new uint32_t[max_val_ + 2]),
       bucket_size_(bucket_size),
       num_buckets_((size_ - 1) / bucket_size_ + 2),
       buckets_(new uint32_t[num_buckets_ * max_val_]) {
   Init();
 }
 
-BucketedFMIndex::~BucketedFMIndex() {
-  delete [] char_counts_;
+BucketedFmIndex::~BucketedFmIndex() {
+  delete [] prefix_sum_;
   delete [] buckets_;
 }
 
 
-uint32_t BucketedFMIndex::Less(uint8_t chr) const {
-  return char_counts_[chr];
+uint32_t BucketedFmIndex::Less(uint8_t chr) const {
+  return prefix_sum_[chr];
 }
 
-uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
+uint32_t BucketedFmIndex::Rank(uint8_t chr, uint32_t pos) const {
   uint32_t count = 0;
   for (uint32_t idx = pos % bucket_size_; idx > 0; --idx) {
     count += (bwt_data_[pos - idx] == chr ? 1 : 0);
@@ -67,7 +68,7 @@ uint32_t BucketedFMIndex::Rank(uint8_t chr, uint32_t pos) const {
 }
 
 
-void BucketedFMIndex::Init() {
+void BucketedFmIndex::Init() {
   memset(buckets_, 0, num_buckets_ * max_val_ * sizeof(uint32_t));
 
   for (uint32_t bidx = 1; bidx < num_buckets_; ++bidx) {
@@ -86,12 +87,37 @@ void BucketedFMIndex::Init() {
     }
   }
 
-  memset(char_counts_, 0, (max_val_ + 2) * sizeof(uint32_t));
+  memset(prefix_sum_, 0, (max_val_ + 2) * sizeof(uint32_t));
   for (uint32_t char_idx = 1; char_idx <= max_val_ + 1; ++char_idx) {
-    char_counts_[char_idx] = char_counts_[char_idx - 1] + Rank(char_idx - 1, size_);
-    assert(char_counts_[char_idx] <= size_);
+    prefix_sum_[char_idx] = prefix_sum_[char_idx - 1] + Rank(char_idx - 1, size_);
+    assert(prefix_sum_[char_idx] <= size_);
   }
 }
 
+
+WaveletFmIndex::WaveletFmIndex(String& bwt, size_t max_val)
+  : FmIndex(bwt, max_val),
+    prefix_sum_(max_val + 1),
+    wavelet_tree_(const_cast<char*>((const char*)bwt.data()), bwt.size(), max_val + 1) {
+}
+
+WaveletFmIndex::~WaveletFmIndex() {
+}
+
+void WaveletFmIndex::Init() {
+  prefix_sum_[0] = 0;
+  for (uint32_t char_idx = 1; char_idx <= max_val_; ++char_idx) {
+    prefix_sum_[char_idx] = prefix_sum_[char_idx - 1] +
+                            wavelet_tree_.get_rank(char_idx - 1, size_);
+  }
+}
+
+uint32_t WaveletFmIndex::Less(uint8_t chr) const {
+  return prefix_sum_[chr];
+}
+
+uint32_t WaveletFmIndex::Rank(uint8_t chr, uint32_t pos) const {
+  return wavelet_tree_.get_rank(chr, pos);
+}
 
 }  // namespace overlap

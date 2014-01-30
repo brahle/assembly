@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstdlib>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -14,7 +15,7 @@
 #include "overlap/util.h"
 
 
-TEST(BucketedFMIndexTest, Rank) {
+TEST(BucketedFmIndexTest, Rank) {
   size_t size = 500;
   uint8_t* bwt_data = new uint8_t[size + 1];
 
@@ -25,18 +26,20 @@ TEST(BucketedFMIndexTest, Rank) {
   bwt_data[size] = '\0';
 
   overlap::String bwt(bwt_data, size);
-  overlap::BucketedFMIndex fmi(bwt, 4, 32);
+  //overlap::BucketedFmIndex fmi(bwt, 4, 32);
+  overlap::WaveletFmIndex fmi(bwt, 4);
   fmi.Init();
 
   ASSERT_EQ(4, fmi.max_val());
   ASSERT_EQ(size, fmi.size());
 
   uint32_t cnt[5] = {0};
-  for (uint32_t i = 0; i <= size; ++i) {
+  for (uint32_t i = 1; i <= size; ++i) {
     if (i) {
       cnt[bwt_data[i - 1]]++;
     }
     for (uint8_t c = 0; c < 5; ++c) {
+      ASSERT_GE(size, fmi.Rank(c, i));
       EXPECT_EQ(cnt[c],  fmi.Rank(c, i));
     }
   }
@@ -46,10 +49,10 @@ TEST(BucketedFMIndexTest, Rank) {
     EXPECT_EQ(csum, fmi.Less(c));
     csum += cnt[c];
   }
-  EXPECT_EQ(csum, fmi.size());
+  ASSERT_EQ(csum, fmi.size());
 }
 
-TEST(BucketedFMIndexTest, Integration) {
+TEST(BucketedFmIndexTest, Integration) {
   std::vector<std::string> raw_reads {
     "ACGTATACGTTAGCTATTCG",
     "ACTAGGCTATGTCATTAACG",
@@ -75,7 +78,7 @@ TEST(BucketedFMIndexTest, Integration) {
   overlap::UintArray order = overlap::STLStringOrder(reads);
   overlap::SaisSACA saca;
   std::unique_ptr<overlap::String> bwt(saca.BuildBWT(reads, 4));
-  overlap::BucketedFMIndex fmi(*bwt, 4, 32);
+  overlap::BucketedFmIndex fmi(*bwt, 4, 32);
   fmi.Init();
 
   ASSERT_EQ(reads.size(), fmi.Less(1));

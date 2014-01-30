@@ -3,16 +3,17 @@
 PROJDIR=../..
 BDIR=$(PROJDIR)/bin
 ODIR=$(PROJDIR)/obj
-VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test
+VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test:$(PROJDIR)/src/overlap/wavelet
 # Compiler and linker settings.
 CXX=g++
 # Targets.
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PROJDIR)/include
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PROJDIR)/include -I$(PROJDIR)/src
 LDFLAGS=-L$(PROJDIR)/lib -lgflags
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)
 SRC=read.cpp fm-index.cpp myers.cpp overlap.cpp sort.cpp suffix-array.cpp \
-	suffix-filter.cpp validate.cpp sais.cpp
+	suffix-filter.cpp validate.cpp sais.cpp \
+	wavelet-tree.cpp ranked-bitmap.cpp
 OBJ=$(addprefix $(ODIR)/, $(SRC:.cpp=.o))
 # Test sources and object files.
 TEST_SRC=read_test.cpp fm-index_test.cpp overlap_test.cpp sort_test.cpp

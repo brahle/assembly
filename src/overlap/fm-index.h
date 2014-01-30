@@ -3,17 +3,18 @@
 
 #include <stdint.h>
 #include <sys/types.h>
-#include <memory>
+
+#include "util.h"
+#include "wavelet/wavelet-tree.h"
 
 namespace overlap {
 
-
 class String;
 
-class FMIndex {
+class FmIndex {
  public:
-  FMIndex(const String& bwt, size_t max_val);
-  virtual ~FMIndex();
+  FmIndex(String& bwt, size_t max_val);
+  virtual ~FmIndex();
 
   virtual void Init() = 0;
   // Accessors.
@@ -29,10 +30,10 @@ class FMIndex {
   const size_t max_val_;
 };
 
-class BucketedFMIndex : public FMIndex {
+class BucketedFmIndex : public FmIndex {
  public:
-  BucketedFMIndex(const String& bwt, size_t max_val, size_t bucket_size);
-  ~BucketedFMIndex();
+  BucketedFmIndex(String& bwt, size_t max_val, size_t bucket_size);
+  ~BucketedFmIndex();
 
   void Init();
   uint32_t Less(uint8_t chr) const;
@@ -41,13 +42,26 @@ class BucketedFMIndex : public FMIndex {
  private:
   const uint8_t* bwt_data_;
   // Cumulative sum of total char counts.
-  uint32_t* const char_counts_;
+  uint32_t* const prefix_sum_;
   // Bucket count data.
   const size_t bucket_size_;
   const size_t num_buckets_;
   uint32_t* const buckets_;
 };
 
+class WaveletFmIndex : public FmIndex {
+ public:
+  WaveletFmIndex(String& bwt, size_t max_val);
+  ~WaveletFmIndex();
+
+  void Init();
+  uint32_t Less(uint8_t chr) const;
+  uint32_t Rank(uint8_t chr, uint32_t pos) const;
+
+ private:
+  UintArray prefix_sum_;
+  const wavelet::WaveletTree wavelet_tree_;
+};
 
 }  // namespace overlap
 

@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
   printf("Building FM-index.\n");
   prev = clock();
-  overlap::BucketedFMIndex fmi(*bwt, 4, 32);
+  overlap::BucketedFmIndex fmi(*bwt, 4, 32);
   fmi.Init();
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);

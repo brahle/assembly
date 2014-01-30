@@ -163,7 +163,10 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
 
   uint32_t id = 0;
   for (uint32_t orig_id = 0; fgets(buff, sizeof buff, fd); ++orig_id) {
-    fgets(buff, sizeof buff, fd);
+    if (!fgets(buff, sizeof buff, fd)) {
+      return nullptr;
+    }
+
     size_t size = strlen(buff) - 1;
 
     if (size >= min_read_size) {
