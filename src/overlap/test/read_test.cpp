@@ -15,7 +15,7 @@ uint8_t* AllocAndInit(const char* data, size_t size) {
   return array;
 }
 
-TEST(ReadTest, StringNormal) {
+TEST(StringTest, Normal) {
   uint8_t* data = AllocAndInit("wordisborn", 10);
   overlap::String tmp(data, 10);
   EXPECT_EQ(10, tmp.size());
@@ -27,7 +27,7 @@ TEST(ReadTest, StringNormal) {
   EXPECT_FALSE(tmp < tmp);
 }
 
-TEST(ReadTest, StringEmpty) {
+TEST(StringTest, Empty) {
   uint8_t* data = AllocAndInit("", 0);
   overlap::String tmp(data, 0);
   EXPECT_EQ(0, tmp.size());
@@ -36,7 +36,7 @@ TEST(ReadTest, StringEmpty) {
   EXPECT_FALSE(tmp < tmp);
 }
 
-TEST(ReadTest, StringCompare) {
+TEST(StringTest, Compare) {
   std::vector<std::string> strings {
     "", "A", "C", "G", "T", "AC", "AG", "ACGA", "ATAC", "CTAG", "CG", "CTA",
     "CGGTA", "GAGTG", "GATT", "GCCA", "GCTC", "TAT", "TACGT", "TACGTGTG", "ACGTAG"
@@ -60,7 +60,7 @@ TEST(ReadTest, StringCompare) {
   }
 }
 
-TEST(ReadTest, ReadNormal) {
+TEST(ReadTest, Normal) {
   uint8_t* data = AllocAndInit("wordwasborn", 11);
   overlap::Read tmp(data, 11, 10, 15);
   EXPECT_EQ(11, tmp.size());
@@ -74,14 +74,14 @@ TEST(ReadTest, ReadNormal) {
   EXPECT_EQ(15, tmp.orig_id());
 }
 
-TEST(ReadTest, DNAToArrayChars) {
+TEST(DNAToArrayTest, CharUsage) {
   const uint8_t* array = overlap::DNAToArray((const uint8_t*)"ACGTCGCATACGTCA", 15);
   uint8_t target[16] = {1, 2, 3, 4, 2, 3, 2, 1, 4, 1, 2, 3, 4, 2, 1, 0};
   EXPECT_STREQ((const char*)target, (const char*)array);
   delete[] array;
 }
 
-TEST(ReadTest, DNAToArrayRead) {
+TEST(DNAToArrayTest, ReadUsage) {
   overlap::Read read(AllocAndInit("ACAGACATACATGGCCT", 17), 17, 0, 10);
   uint8_t target[18] = {1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 4, 3, 3, 2, 2, 4, 0};
   std::unique_ptr<overlap::Read> new_read(overlap::DNAToArray(read));
@@ -91,14 +91,14 @@ TEST(ReadTest, DNAToArrayRead) {
   EXPECT_EQ(read.orig_id(), new_read->orig_id());
 }
 
-TEST(ReadTest, ArrayToDNAChars) {
+TEST(ArrayToDNATest, CharUsage) {
   uint8_t array[16] = {1, 2, 3, 4, 2, 3, 2, 1, 4, 1, 2, 3, 4, 2, 1, 0};
   const uint8_t* dna = overlap::ArrayToDNA(array, 15);
   EXPECT_STREQ("ACGTCGCATACGTCA", (const char*)dna);
   delete[] dna;
 }
 
-TEST(ReadTest, ArrayToDNARead) {
+TEST(ArrayToDNATest, ReadUsage) {
   uint8_t array[18] = {1, 2, 1, 3, 1, 2, 1, 4, 1, 2, 1, 4, 3, 3, 2, 2, 4, 0};
   overlap::Read read(AllocAndInit((const char*)array, 17), 17, 0, 10);
   std::unique_ptr<overlap::Read> new_read(overlap::ArrayToDNA(read));
@@ -109,7 +109,7 @@ TEST(ReadTest, ArrayToDNARead) {
 
 }
 
-TEST(ReadTest, ReverseComplementChars) {
+TEST(RevcompTest, CharsUsage) {
   const uint8_t* fwd = overlap::DNAToArray((const uint8_t*)"ACGTCGTAGCTAG", 13);
   const uint8_t* bwd = overlap::ReverseComplement(fwd, 13);
   const uint8_t* bwd_dna = overlap::ArrayToDNA(bwd, 13);
@@ -121,7 +121,7 @@ TEST(ReadTest, ReverseComplementChars) {
   delete[] bwd_dna;
 }
 
-TEST(ReadTest, ReverseComplementRead) {
+TEST(RevcompTest, ReadUsage) {
   overlap::Read fwd(overlap::DNAToArray((const uint8_t*)"ACGTATCGATCGATGG", 16), 16, 3, 15);
   std::unique_ptr<overlap::Read> bwd(overlap::ReverseComplement(fwd));
   std::unique_ptr<overlap::Read> bwd_dna(overlap::ArrayToDNA(*bwd));
@@ -132,7 +132,7 @@ TEST(ReadTest, ReverseComplementRead) {
   EXPECT_EQ(fwd.orig_id(), bwd_dna->orig_id());
 }
 
-TEST(ReadTest, ReadSet) {
+TEST(ReadSetTest, Normal) {
   overlap::ReadSet reads(512);
   EXPECT_EQ(0, reads.size());
 
@@ -152,7 +152,7 @@ TEST(ReadTest, ReadSet) {
   }
 }
 
-TEST(ReadTest, ReadFasta) {
+TEST(ReadFastaTest, Normal) {
   FILE *fp = tmpfile();
   ASSERT_NE(nullptr, fp);
 
