@@ -7,12 +7,17 @@
 #include <unordered_map>
 #include <vector>
 
+#include <gflags/gflags.h>
+
 #include "fm-index.h"
 #include "overlap.h"
 #include "read.h"
 #include "suffix-filter.h"
 #include "util.h"
 
+
+DECLARE_double(error_rate);
+DEFINE_int32(min_overlap_size, 25, "");
 
 namespace overlap {
 
@@ -31,7 +36,8 @@ void FilterPass(
     } else if (prev->read_one == curr->read_one and
                prev->read_two == curr->read_two and
                prev->type == curr->type) {
-      if ((int32_t)abs(curr->len_one - prev->len_one) > (prev->score - curr->score) + 1) {
+      if (abs((int32_t)curr->len_one - (int32_t)prev->len_one) >
+          prev->score - curr->score + 1) {
         outvec.push_back(curr);
         prev = curr;
       }
@@ -44,9 +50,8 @@ void FilterPass(
 
 }  // unnamed namespace
 
-SuffixFilter::SuffixFilter(double error_rate, size_t min_overlap_size)
-    : min_overlap_size_(min_overlap_size),
-      factor_size_(SuffixFilter::FactorSize(error_rate, min_overlap_size)) {
+SuffixFilter::SuffixFilter()
+  : factor_size_(SuffixFilter::FactorSize(FLAGS_error_rate, FLAGS_min_overlap_size)) {
 }
 
 SuffixFilter::~SuffixFilter() {
@@ -61,8 +66,8 @@ size_t SuffixFilter::FactorSize(double error_rate, size_t min_overlap_size) {
   return final_size;
 }
 
-BFSSuffixFilter::BFSSuffixFilter(double error_rate, size_t min_overlap_size)
-    : SuffixFilter(error_rate, min_overlap_size) {
+BFSSuffixFilter::BFSSuffixFilter()
+    : SuffixFilter() {
 }
 
 BFSSuffixFilter::~BFSSuffixFilter() {
@@ -84,8 +89,7 @@ OverlapSet* BFSSuffixFilter::FindCandidates(const ReadSet& reads,
          pos -= factor_size_) {
 
       std::unique_ptr<BFSContext> bfs(
-        new BFSContext(read, read_order, fmi, factor_size_,
-                       min_overlap_size_, candidates.get()));
+        new BFSContext(read, read_order, fmi, factor_size_, candidates.get()));
 
       bfs->Start(pos, (size_t)pos == read_size - 1);
       //bfs->Clear();
@@ -122,13 +126,11 @@ OverlapSet* BFSSuffixFilter::FilterCandidates(const OverlapSet& candidates) {
 }
 
 BFSSuffixFilter::BFSContext::BFSContext(const Read& read, const UintArray& read_order,
-    const FmIndex& fmi, size_t factor_size, size_t min_overlap_size,
-    OverlapSet* results)
+    const FmIndex& fmi, size_t factor_size, OverlapSet* results)
     : read_(read),
       read_order_(read_order),
       fmi_(fmi),
       factor_size_(factor_size),
-      min_overlap_size_(min_overlap_size),
       results_(results),
       states_() {
 }
@@ -141,7 +143,7 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
     std::queue<State>& next = queue_[1 - qid];
 
     while(!curr.empty()) {
-      State state = curr.front();
+      State& state = curr.front();
       uint32_t error = states_[state];
 
       CheckOverlaps(state, start_pos, error);
@@ -178,9 +180,9 @@ void BFSSuffixFilter::BFSContext::Clear() {
 }
 
 void BFSSuffixFilter::BFSContext::CheckOverlaps(
-    State state, uint32_t start, uint32_t error) {
+    const State& state, uint32_t start, uint32_t error) {
   size_t overlap_size = state.pos + read_.size() - start - 1;
-  if (state.pos >= factor_size_ && overlap_size >= min_overlap_size_) {
+  if (state.pos >= factor_size_ && (int)overlap_size >= FLAGS_min_overlap_size) {
     uint32_t low = fmi_.Rank(0, state.low);
     uint32_t high = fmi_.Rank(0, state.high);
 
@@ -199,21 +201,6 @@ void BFSSuffixFilter::BFSContext::Queue(uint32_t low, uint32_t high,
     queue.push(new_state);
     states_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
   }
-}
-
-std::size_t BFSSuffixFilter::BFSContext::StateHash::operator()(
-    const BFSSuffixFilter::BFSContext::State& k) const {
-  register size_t state;
-  state = ((k.low << 5) + k.low) ^ k.high;
-  return ((state << 5) + state) ^ k.pos;
-}
-
-bool BFSSuffixFilter::BFSContext::StateEqual::operator()(
-    const BFSSuffixFilter::BFSContext::State& lhs,
-    const BFSSuffixFilter::BFSContext::State& rhs) const {
-  return (lhs.low == rhs.low and
-          lhs.high == rhs.high and
-          lhs.pos == lhs.pos);
 }
 
 }  // namespace overlap

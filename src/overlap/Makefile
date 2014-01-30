@@ -12,7 +12,7 @@ LDFLAGS=-L$(PROJDIR)/lib -lgflags
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)
 SRC=read.cpp fm-index.cpp myers.cpp overlap.cpp sort.cpp suffix-array.cpp \
-	suffix-filter.cpp validate.cpp sais.cpp \
+	validate.cpp suffix-filter.cpp sais.cpp \
 	wavelet-tree.cpp ranked-bitmap.cpp
 OBJ=$(addprefix $(ODIR)/, $(SRC:.cpp=.o))
 # Test sources and object files.
@@ -23,7 +23,7 @@ all : dev
 
 test : CFLAGS += -DDEBUG -g
 test : $(BDIR)/olapper_test
-	$(BDIR)/olapper_test
+	valgrind --leak-check=full $(BDIR)/olapper_test
 
 # Build options. Optimized (default/all) or debug.
 prod : CFLAGS += -DNDEBUG -O3

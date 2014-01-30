@@ -18,7 +18,7 @@
 TEST(BucketedFmIndexTest, Rank) {
   size_t size = 500;
   uint8_t* bwt_data = new uint8_t[size + 1];
-  uint32_t depth = 5;
+  uint32_t depth = 4;
 
   srand(time(0));
   for (uint32_t i = 0; i < size; ++i) {
@@ -31,7 +31,7 @@ TEST(BucketedFmIndexTest, Rank) {
   //overlap::WaveletFmIndex fmi(bwt, depth - 1);
   fmi.Init();
 
-  ASSERT_EQ(depth - 1, fmi.max_val());
+  ASSERT_EQ(depth, fmi.max_val());
   ASSERT_EQ(size, fmi.size());
 
   uint32_t cnt[5] = {0};
@@ -71,8 +71,8 @@ TEST(BucketedFmIndexTest, Integration) {
 
   overlap::ReadSet reads(20);
   for (uint32_t i = 0; i < raw_reads.size(); ++i) {
-    const uint8_t* read = overlap::DNAToArray(
-        (const uint8_t*)raw_reads[i].c_str(), raw_reads[i].size());
+    uint8_t* read = overlap::DNAToArray(
+        (uint8_t*)raw_reads[i].c_str(), raw_reads[i].size());
     reads.Add(new overlap::Read(read, raw_reads[i].size(), i, i));
   }
 

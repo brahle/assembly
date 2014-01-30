@@ -20,10 +20,7 @@ class ReadSet;
 
 class SuffixFilter {
  public:
-  SuffixFilter(
-      double error_rate,
-      size_t min_overlap_size);
-
+  SuffixFilter();
   virtual ~SuffixFilter();
 
   virtual OverlapSet* FindCandidates(
@@ -37,17 +34,13 @@ class SuffixFilter {
   static size_t FactorSize(double error_rate, size_t min_overlap_size);
 
  protected:
-  const size_t min_overlap_size_;
   const size_t factor_size_;
 };
 
 
 class BFSSuffixFilter : public SuffixFilter {
  public:
-  BFSSuffixFilter(
-      double error_rate,
-      size_t min_overlap_size);
-
+  BFSSuffixFilter();
   ~BFSSuffixFilter();
 
   OverlapSet* FindCandidates(
@@ -66,7 +59,6 @@ class BFSSuffixFilter : public SuffixFilter {
         const UintArray& read_order,
         const FmIndex& fmi,
         size_t factor_size,
-        size_t min_overlap_size,
         OverlapSet* results);
 
     void Start(
@@ -83,18 +75,26 @@ class BFSSuffixFilter : public SuffixFilter {
     };
 
     struct StateHash {
-      std::size_t operator()(const State& k) const;
+      std::size_t operator()(const State& k) const {
+        register size_t state;
+        state = ((k.low << 5) + k.low) ^ k.high;
+        return ((state << 5) + state) ^ k.pos;
+      }
     };
 
     struct StateEqual {
-      bool operator()(const State& lhs, const State& rhs) const;
+      bool operator()(const State& lhs, const State& rhs) const {
+        return (lhs.low == rhs.low and
+                lhs.high == rhs.high and
+                lhs.pos == lhs.pos);
+      }
     };
 
     typedef std::queue<State> StateQueue;
     typedef std::unordered_map<State, uint32_t, StateHash, StateEqual> StateMap;
 
     inline void CheckOverlaps(
-        State state,
+        const State& state,
         uint32_t start,
         uint32_t error);
 
@@ -110,7 +110,6 @@ class BFSSuffixFilter : public SuffixFilter {
     const UintArray& read_order_;
     const FmIndex& fmi_;
     const size_t factor_size_;
-    const size_t min_overlap_size_;
 
     OverlapSet* results_;
 

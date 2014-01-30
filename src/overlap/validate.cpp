@@ -38,8 +38,8 @@ OverlapSet* ValidateCandidates(
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
     Overlap* o = candidates[oid];
 
-    Read* read_one = reads[o->read_one];
-    Read* read_two = reads[o->read_two];
+    const Read* read_one = reads[o->read_one];
+    const Read* read_two = reads[o->read_two];
 
     int len_two, score;
     int ret = MyersEditDistance(

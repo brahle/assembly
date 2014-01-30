@@ -15,23 +15,18 @@
 #include "util.h"
 #include "validate.h"
 
-DECLARE_double(error_rate);
-
 int main(int argc, char* argv[]) {
    google::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 2) {
     exit(1);
   }
 
-  size_t min_read_size = 50;
-  size_t min_overlap_size = 25;
-
   time_t start = clock(), prev, curr;
 
   printf("Reading genome data.\n");
   prev = clock();
   FILE* in = fopen(argv[1], "r");
-  std::unique_ptr<overlap::ReadSet> reads(overlap::ReadFasta(in, min_read_size));
+  std::unique_ptr<overlap::ReadSet> reads(overlap::ReadFasta(in));
   fclose(in);
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
@@ -63,7 +58,7 @@ int main(int argc, char* argv[]) {
 
   printf("Finding candidates.\n");
   prev = clock();
-  overlap::BFSSuffixFilter sufter(FLAGS_error_rate, min_overlap_size);
+  overlap::BFSSuffixFilter sufter;
   std::unique_ptr<overlap::OverlapSet> candidates(
       sufter.FindCandidates(*reads, read_order, fmi));
   curr = clock();

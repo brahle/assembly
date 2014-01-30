@@ -33,16 +33,16 @@ TEST(StringOrderTest, STL) {
 
 TEST(StringOrderTest, Radix) {
   ReadSet reads(20);
-  reads.Add(new Read(DNAToArray((const uint8_t*)"ACCACCACACCA", 12), 12, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"", 0), 0, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"AC", 2), 2, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"C", 1), 1, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"ACA", 3), 3, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"AACACAC", 7), 7, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"A", 1), 1, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"ACC", 3), 3, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"AG", 2), 2, 0, 0));
-  reads.Add(new Read(DNAToArray((const uint8_t*)"ACAACAAAA", 9), 9, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"ACCACCACACCA", 12), 12, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"", 0), 0, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"AC", 2), 2, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"C", 1), 1, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"ACA", 3), 3, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"AACACAC", 7), 7, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"A", 1), 1, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"ACC", 3), 3, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"AG", 2), 2, 0, 0));
+  reads.Add(new Read(DNAToArray((uint8_t*)"ACAACAAAA", 9), 9, 0, 0));
 
   UintArray order = RadixStringOrder(reads, 4);
   for (uint32_t i = 0; i < reads.size() - 1; ++i) {

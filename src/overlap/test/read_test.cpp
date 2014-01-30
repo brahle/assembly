@@ -4,10 +4,12 @@
 #include <string>
 #include <vector>
 
+#include <gflags/gflags.h>
 #include <gtest/gtest.h>
 
 #include "overlap/read.h"
 
+DECLARE_int32(min_read_size);
 
 uint8_t* AllocAndInit(const char* data, size_t size) {
   uint8_t* array = new uint8_t[size + 1];
@@ -75,7 +77,7 @@ TEST(ReadTest, Usual) {
 }
 
 TEST(DNAToArrayTest, CharUsage) {
-  const uint8_t* array = overlap::DNAToArray((const uint8_t*)"ACGTCGCATACGTCA", 15);
+  uint8_t* array = overlap::DNAToArray((uint8_t*)"ACGTCGCATACGTCA", 15);
   uint8_t target[16] = {1, 2, 3, 4, 2, 3, 2, 1, 4, 1, 2, 3, 4, 2, 1, 0};
   EXPECT_STREQ((const char*)target, (const char*)array);
   delete[] array;
@@ -93,7 +95,7 @@ TEST(DNAToArrayTest, ReadUsage) {
 
 TEST(ArrayToDNATest, CharUsage) {
   uint8_t array[16] = {1, 2, 3, 4, 2, 3, 2, 1, 4, 1, 2, 3, 4, 2, 1, 0};
-  const uint8_t* dna = overlap::ArrayToDNA(array, 15);
+  uint8_t* dna = overlap::ArrayToDNA(array, 15);
   EXPECT_STREQ("ACGTCGCATACGTCA", (const char*)dna);
   delete[] dna;
 }
@@ -110,9 +112,9 @@ TEST(ArrayToDNATest, ReadUsage) {
 }
 
 TEST(RevcompTest, CharsUsage) {
-  const uint8_t* fwd = overlap::DNAToArray((const uint8_t*)"ACGTCGTAGCTAG", 13);
-  const uint8_t* bwd = overlap::ReverseComplement(fwd, 13);
-  const uint8_t* bwd_dna = overlap::ArrayToDNA(bwd, 13);
+  uint8_t* fwd = overlap::DNAToArray((uint8_t*)"ACGTCGTAGCTAG", 13);
+  uint8_t* bwd = overlap::ReverseComplement(fwd, 13);
+  uint8_t* bwd_dna = overlap::ArrayToDNA(bwd, 13);
 
   EXPECT_STREQ("CTAGCTACGACGT", (const char*)bwd_dna);
 
@@ -122,7 +124,7 @@ TEST(RevcompTest, CharsUsage) {
 }
 
 TEST(RevcompTest, ReadUsage) {
-  overlap::Read fwd(overlap::DNAToArray((const uint8_t*)"ACGTATCGATCGATGG", 16), 16, 3, 15);
+  overlap::Read fwd(overlap::DNAToArray((uint8_t*)"ACGTATCGATCGATGG", 16), 16, 3, 15);
   std::unique_ptr<overlap::Read> bwd(overlap::ReverseComplement(fwd));
   std::unique_ptr<overlap::Read> bwd_dna(overlap::ArrayToDNA(*bwd));
 
@@ -147,8 +149,7 @@ TEST(ReadSetTest, Usual) {
   for (uint32_t i = 0; i < reads_v.size(); ++i) {
     reads.Add(reads_v[i]);
     EXPECT_EQ(i + 1, reads.size());
-    EXPECT_EQ(reads_v[i], reads[i]);
-    EXPECT_EQ(reads_v[i], reads.Get(i));
+    EXPECT_STREQ((char*)reads_v[i]->data(), (char*)reads[i]->data());
   }
 }
 
@@ -167,7 +168,8 @@ TEST(ReadFastaTest, ReadFasta) {
   }
 
   rewind(fp);
-  std::unique_ptr<overlap::ReadSet> reads(overlap::ReadFasta(fp, 1));
+  FLAGS_min_read_size = 1;
+  std::unique_ptr<overlap::ReadSet> reads(overlap::ReadFasta(fp));
   ASSERT_EQ(strings.size(), reads->size());
   for (uint32_t i = 0; i < strings.size(); ++i) {
     std::unique_ptr<overlap::Read> read(overlap::ArrayToDNA(*reads->Get(i)));
@@ -179,7 +181,8 @@ TEST(ReadFastaTest, ReadFasta) {
   };
 
   rewind(fp);
-  reads.reset(overlap::ReadFasta(fp, 5));
+  FLAGS_min_read_size = 5;
+  reads.reset(overlap::ReadFasta(fp));
   ASSERT_EQ(strings5.size(), reads->size());
   for (uint32_t i = 0; i < strings5.size(); ++i) {
     std::unique_ptr<overlap::Read> read(overlap::ArrayToDNA(*reads->Get(i)));
