@@ -26,6 +26,8 @@ public:
 protected:
   const uint8_t* data_;
   const size_t size_;
+
+  DISALLOW_COPY_AND_ASSIGN(String);
 };
 
 class Read : public String {
@@ -39,6 +41,8 @@ public:
 private:
   const uint32_t id_;
   const uint32_t orig_id_;
+
+  DISALLOW_COPY_AND_ASSIGN(Read);
 };
 
 const uint8_t* ReverseComplement(const uint8_t* data, size_t size);

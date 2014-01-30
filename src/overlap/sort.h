@@ -1,19 +1,16 @@
 #ifndef OVERLAP_SORT_H_
 #define OVERLAP_SORT_H_
 
-#include <cstdint>
-#include <vector>
+#include "util.h"
 
 
 namespace overlap {
 
-
 class ReadSet;
 class String;
 
-std::vector<uint32_t> STLStringOrder(const ReadSet& strings);
-std::vector<uint32_t> RadixStringOrder(const ReadSet& strings, const size_t max_val);
-
+UintArray STLStringOrder(const ReadSet& strings);
+UintArray RadixStringOrder(const ReadSet& strings, const size_t max_val);
 
 }  // namespace overlap
 

@@ -15,6 +15,7 @@ class FMIndex {
   FMIndex(const String& bwt, size_t max_val);
   virtual ~FMIndex();
 
+  virtual void Init() = 0;
   // Accessors.
   size_t size() const;
   size_t max_val() const;
@@ -33,12 +34,11 @@ class BucketedFMIndex : public FMIndex {
   BucketedFMIndex(const String& bwt, size_t max_val, size_t bucket_size);
   ~BucketedFMIndex();
 
+  void Init();
   uint32_t Less(uint8_t chr) const;
   uint32_t Rank(uint8_t chr, uint32_t pos) const;
 
  private:
-  void Init();
-
   const uint8_t* bwt_data_;
   // Cumulative sum of total char counts.
   uint32_t* const char_counts_;
