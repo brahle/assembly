@@ -45,6 +45,12 @@ private:
   DISALLOW_COPY_AND_ASSIGN(Read);
 };
 
+const uint8_t* DNAToArray(const uint8_t* data, size_t size);
+Read* DNAToArray(const Read& read);
+
+const uint8_t* ArrayToDNA(const uint8_t* data, size_t size);
+Read* ArrayToDNA(const Read& read);
+
 const uint8_t* ReverseComplement(const uint8_t* data, size_t size);
 Read* ReverseComplement(const Read& read);
 

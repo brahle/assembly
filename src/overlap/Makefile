@@ -7,7 +7,7 @@ VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test
 # Compiler and linker settings.
 CXX=g++
 # Targets.
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src
 LDFLAGS=-L$(PROJDIR)/lib
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)
@@ -21,7 +21,8 @@ TEST_OBJ=$(addprefix $(ODIR)/, $(TEST_SRC:.cpp=.o))
 
 all : dev
 
-test : dev
+test : CFLAGS += -DDEBUG -g
+test : $(BDIR)/olapper_test
 	$(BDIR)/olapper_test
 
 # Build options. Optimized (default/all) or debug.

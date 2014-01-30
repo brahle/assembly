@@ -207,11 +207,6 @@ void BFSSuffixFilter::BFSContext::Queue(uint32_t low, uint32_t high,
 
 std::size_t BFSSuffixFilter::BFSContext::StateHash::operator()(
     const BFSSuffixFilter::BFSContext::State& k) const {
-  /*
-  return (std::hash<uint32_t>()(std::get<0>(k)) ^
-          std::hash<uint32_t>()(std::get<1>(k)) ^
-          std::hash<uint32_t>()(std::get<2>(k)));
-  */
   register size_t state;
   state = ((k.low << 5) + k.low) ^ k.high;
   return ((state << 5) + state) ^ k.pos;
@@ -220,11 +215,6 @@ std::size_t BFSSuffixFilter::BFSContext::StateHash::operator()(
 bool BFSSuffixFilter::BFSContext::StateEqual::operator()(
     const BFSSuffixFilter::BFSContext::State& lhs,
     const BFSSuffixFilter::BFSContext::State& rhs) const {
-  /*
-  return (std::get<0>(lhs) == std::get<0>(rhs) &&
-          std::get<1>(lhs) == std::get<1>(rhs) &&
-          std::get<2>(lhs) == std::get<2>(rhs));
-          */
   return (lhs.low == rhs.low and
           lhs.high == rhs.high and
           lhs.pos == lhs.pos);

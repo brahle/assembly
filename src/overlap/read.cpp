@@ -49,11 +49,65 @@ uint32_t Read::orig_id() const {
   return orig_id_;
 }
 
+const uint8_t* DNAToArray(const uint8_t* data, size_t size) {
+  uint8_t* array = new uint8_t[size + 1];
+  array[size] = '\0';
+  for (uint32_t pos = 0; pos < size; ++pos) {
+    uint8_t fc = 0;
+    switch (data[pos]) {
+    case 'A':
+      fc = 1;
+      break;
+    case 'C':
+      fc = 2;
+      break;
+    case 'G':
+      fc = 3;
+      break;
+    case 'T':
+      fc = 4;
+      break;
+    default:
+      assert(0);
+      break;
+    }
+    array[pos] = fc;
+  }
+  return array;
+}
+
+Read* DNAToArray(const Read& read) {
+  return new Read(
+      DNAToArray(read.data(), read.size()),
+      read.size(),
+      read.id(),
+      read.orig_id());
+}
+
+const uint8_t* ArrayToDNA(const uint8_t* data, size_t size) {
+  static const char mapping[5] = "ACGT";
+  uint8_t* dna = new uint8_t[size + 1];
+  dna[size] = '\0';
+  for (uint8_t pos = 0; pos < size; ++pos) {
+    assert(data[pos] > 0 && data[pos] < 5);
+    dna[pos] = mapping[data[pos] - 1];
+  }
+  return dna;
+}
+
+Read* ArrayToDNA(const Read& read) {
+  return new Read(
+      ArrayToDNA(read.data(), read.size()),
+      read.size(),
+      read.id(),
+      read.orig_id());
+}
+
 const uint8_t* ReverseComplement(const uint8_t* data, size_t size) {
   uint8_t* data_rc = new uint8_t[size + 1];
   data_rc[size] = '\0';
   for (uint32_t idx = 0; idx < size; ++idx) {
-    data_rc[size - idx - 1] = 4 - data[idx];
+    data_rc[size - idx - 1] = 5 - data[idx];
   }
   return data_rc;
 }
@@ -110,37 +164,11 @@ ReadSet* ReadFasta(FILE* fd, size_t min_read_size) {
   uint32_t id = 0;
   for (uint32_t orig_id = 0; fgets(buff, sizeof buff, fd); ++orig_id) {
     assert(fgets(buff, sizeof buff, fd));
-    size_t size = strlen(buff);
+    size_t size = strlen(buff) - 1;
 
     if (size >= min_read_size) {
-      uint8_t* read_data = new uint8_t[size];
-      buff[size - 1] = '\0';
-      strcpy((char*)read_data, buff);
-
-      for (uint32_t pos = 0; pos < size - 1; ++pos) {
-        uint8_t fc = 0;
-        switch (read_data[pos]) {
-        case 'A':
-          fc = 1;
-          break;
-        case 'C':
-          fc = 2;
-          break;
-        case 'G':
-          fc = 3;
-          break;
-        case 'T':
-          fc = 4;
-          break;
-        default:
-          assert(0);
-          break;
-        }
-        read_data[pos] = fc;
-      }
-
-      read_set->Add(new Read(read_data, size - 1, id++, orig_id));
-      assert(read_set->Get(id - 1)->id() == id - 1);
+      const uint8_t* read_data = DNAToArray((uint8_t*)buff, size);
+      read_set->Add(new Read(read_data, size, id++, orig_id));
     }
   }
 

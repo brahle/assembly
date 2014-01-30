@@ -76,8 +76,6 @@ class BFSSuffixFilter : public SuffixFilter {
     void Clear();
 
    private:
-//    typedef std::tuple<uint32_t, uint32_t, uint32_t> State;
-
     struct State {
       uint32_t low;
       uint32_t high;
