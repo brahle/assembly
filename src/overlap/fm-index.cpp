@@ -2,7 +2,7 @@
 #include <cstring>
 
 #include "read.h"
-#include "fm_index.h"
+#include "fm-index.h"
 
 
 namespace overlap {

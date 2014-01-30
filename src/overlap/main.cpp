@@ -4,12 +4,12 @@
 #include <memory>
 #include <vector>
 
-#include "fm_index.h"
+#include "fm-index.h"
 #include "overlap.h"
 #include "read.h"
 #include "sort.h"
-#include "suffix_array.h"
-#include "suffix_filter.h"
+#include "suffix-array.h"
+#include "suffix-filter.h"
 #include "util.h"
 #include "validate.h"
 

@@ -3,7 +3,7 @@
 
 #include "read.h"
 #include "sais.h"
-#include "suffix_array.h"
+#include "suffix-array.h"
 
 
 namespace overlap {

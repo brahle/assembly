@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fm_index.h"
+#include "fm-index.h"
 #include "overlap.h"
 #include "read.h"
-#include "suffix_filter.h"
+#include "suffix-filter.h"
 #include "util.h"
 
 
