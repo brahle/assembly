@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
   printf("Validating overlap candidates.\n");
   prev = clock();
-  candidates.reset(overlap::ValidateCandidates(*reads, *candidates));
+  candidates.reset(overlap::ValidateCandidates(*reads, *candidates, error_rate));
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
   size_t num_overlaps = candidates->size();

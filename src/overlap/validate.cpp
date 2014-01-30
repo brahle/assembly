@@ -15,23 +15,22 @@ namespace overlap {
 namespace {
 
 uint32_t OverlapConfidence(Overlap* o) {
-  if (o) return 1;
-  return 0;
+  return o->len_one + o->len_two - o->score;
 }
 
 }  // unnamed namespace
 
 OverlapSet* ValidateCandidates(
     const ReadSet& reads,
-    const OverlapSet& candidates) {
+    const OverlapSet& candidates,
+    const double error_rate) {
 
   typedef std::pair<uint32_t, uint32_t> Pair;
   std::map<Pair, Overlap*> best;
 
   std::unique_ptr<OverlapSet> overlaps(new OverlapSet(candidates.size()));
 
-  const double error_rate = 0.01;
-  const double extra_ratio = 1.3;
+  const double extra_ratio = 1 + (error_rate * 2);
 
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
     Overlap* o = candidates[oid];
@@ -54,6 +53,7 @@ OverlapSet* ValidateCandidates(
     if (ret == MYERS_STATUS_OK and len_two != -1 and score != -1) {
       o->len_two = len_two + 1;
       o->score = score;
+      o->score = OverlapConfidence(o);
 
       auto elem = best.find(std::make_pair(o->read_one, o->read_two));
       if (elem == best.end() or elem->second->score < o->score) {

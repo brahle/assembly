@@ -9,7 +9,8 @@ class ReadSet;
 
 OverlapSet* ValidateCandidates(
     const ReadSet& reads,
-    const OverlapSet& candidates);
+    const OverlapSet& candidates,
+    const double error_rate);
 
 }  // namespace overlap
 
