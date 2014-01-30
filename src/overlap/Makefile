@@ -1,53 +1,55 @@
 #!/usr/bin/env bash
 # Directories.
 PROJDIR=../..
-VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/tests
-ODIR=$(PROJDIR)/obj
 BDIR=$(PROJDIR)/bin
+ODIR=$(PROJDIR)/obj
+VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test
 # Compiler and linker settings.
 CXX=g++
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -isystem $(PROJDIR)/include
-LDFLAGS=-L$(PROJDIR)/lib
 # Targets.
-BIN=olapper olapper_test
+CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11
+LDFLAGS=-L$(PROJDIR)/lib
 # Main sources and object files.
+BIN=$(addprefix $(BDIR)/, olapper olapper_test)
 SRC=read.cpp fm_index.cpp myers.cpp overlap.cpp \
 		sort.cpp suffix_array.cpp suffix_filter.cpp validate.cpp \
 		sais.cpp
-OBJ=$(SRC:.cpp=.o)
+OBJ=$(addprefix $(ODIR)/, $(SRC:.cpp=.o))
 # Test sources and object files.
-TEST_SRC=
-TEST_OBJ=$(TEST_SRC:.cpp=.o)
-# Debug object file/binary prefix.
-PRE=
+TEST_SRC=read_test.cpp
+TEST_OBJ=$(addprefix $(ODIR)/, $(TEST_SRC:.cpp=.o))
+
+all : dev
+
+test : dev
+	$(BDIR)/olapper_test
 
 # Build options. Optimized (default/all) or debug.
-all : CFLAGS += -DNDEBUG -O3
-all : $(BIN)
+prod : CFLAGS += -DNDEBUG -O3
+prod : $(BIN)
 
-debug : CFLAGS += -DDEBUG -g
-debug : PRE = debug_
-debug : $(BIN)
+dev : CFLAGS += -DDEBUG -g
+dev : $(BIN)
 
 # Linking options.
-olapper : OBJ += main.o
-olapper : $(OBJ)
+$(BDIR)/olapper : OBJ += $(ODIR)/main.o
+$(BDIR)/olapper : $(OBJ)
 
-olapper_test : LDFLAGS += -lgtest_main -lgtest -lpthread
-olapper_test : OBJ += $(TEST_OBJ)
+$(BDIR)/olapper_test : LDFLAGS += -lgtest_main -lgtest -lpthread
+$(BDIR)/olapper_test : OBJ += $(TEST_OBJ)
 
 # Linking.
-$(BIN) : $(OBJ) $(TEST_OBJ) main.o
-	$(CXX) $(LDFLAGS) -o $(BDIR)/${PRE}$@ $(addprefix $(ODIR)/, $(OBJ))
+$(BIN) : $(OBJ) $(TEST_OBJ) $(ODIR)/main.o
+	$(CXX) $(LDFLAGS) -o $@ $(OBJ)
 
 # Compiling options.
-sais.o : CFLAGS += -fomit-frame-pointer
+$(ODIR)/sais.o : CFLAGS += -fomit-frame-pointer
 
-%_test.o : CFLAGS += -pthread
+$(ODIR)/%_test.o : CFLAGS += -pthread -isystem $(PROJDIR)/include
 
 # Compiling.
-%.o : %.cpp
-	$(CXX) $(CFLAGS) -c -o $(ODIR)/$(PRE)$@ $<
+$(ODIR)/%.o : %.cpp
+	$(CXX) $(CFLAGS) -c -o $@ $<
 
 # Clean up.
 clean :
