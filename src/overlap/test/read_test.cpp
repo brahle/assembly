@@ -15,7 +15,7 @@ uint8_t* AllocAndInit(const char* data, size_t size) {
   return array;
 }
 
-TEST(StringTest, Normal) {
+TEST(StringTest, Usual) {
   uint8_t* data = AllocAndInit("wordisborn", 10);
   overlap::String tmp(data, 10);
   EXPECT_EQ(10, tmp.size());
@@ -60,7 +60,7 @@ TEST(StringTest, Compare) {
   }
 }
 
-TEST(ReadTest, Normal) {
+TEST(ReadTest, Usual) {
   uint8_t* data = AllocAndInit("wordwasborn", 11);
   overlap::Read tmp(data, 11, 10, 15);
   EXPECT_EQ(11, tmp.size());
@@ -132,7 +132,7 @@ TEST(RevcompTest, ReadUsage) {
   EXPECT_EQ(fwd.orig_id(), bwd_dna->orig_id());
 }
 
-TEST(ReadSetTest, Normal) {
+TEST(ReadSetTest, Usual) {
   overlap::ReadSet reads(512);
   EXPECT_EQ(0, reads.size());
 
@@ -152,7 +152,7 @@ TEST(ReadSetTest, Normal) {
   }
 }
 
-TEST(ReadFastaTest, Normal) {
+TEST(ReadFastaTest, ReadFasta) {
   FILE *fp = tmpfile();
   ASSERT_NE(nullptr, fp);
 
