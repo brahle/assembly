@@ -18,19 +18,20 @@
 TEST(BucketedFmIndexTest, Rank) {
   size_t size = 500;
   uint8_t* bwt_data = new uint8_t[size + 1];
+  uint32_t depth = 5;
 
   srand(time(0));
   for (uint32_t i = 0; i < size; ++i) {
-    bwt_data[i] = rand() % 5;
+    bwt_data[i] = rand() % depth;
   }
   bwt_data[size] = '\0';
 
   overlap::String bwt(bwt_data, size);
-  //overlap::BucketedFmIndex fmi(bwt, 4, 32);
-  overlap::WaveletFmIndex fmi(bwt, 4);
+  overlap::BucketedFmIndex fmi(bwt, 4, 32);
+  //overlap::WaveletFmIndex fmi(bwt, depth - 1);
   fmi.Init();
 
-  ASSERT_EQ(4, fmi.max_val());
+  ASSERT_EQ(depth - 1, fmi.max_val());
   ASSERT_EQ(size, fmi.size());
 
   uint32_t cnt[5] = {0};
@@ -38,14 +39,14 @@ TEST(BucketedFmIndexTest, Rank) {
     if (i) {
       cnt[bwt_data[i - 1]]++;
     }
-    for (uint8_t c = 0; c < 5; ++c) {
+    for (uint8_t c = 0; c < depth; ++c) {
       ASSERT_GE(size, fmi.Rank(c, i));
       EXPECT_EQ(cnt[c],  fmi.Rank(c, i));
     }
   }
 
   uint32_t csum = 0;
-  for (uint8_t c = 0; c < 5; ++c) {
+  for (uint8_t c = 0; c < depth; ++c) {
     EXPECT_EQ(csum, fmi.Less(c));
     csum += cnt[c];
   }

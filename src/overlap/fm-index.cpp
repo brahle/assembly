@@ -98,7 +98,7 @@ void BucketedFmIndex::Init() {
 WaveletFmIndex::WaveletFmIndex(String& bwt, size_t max_val)
   : FmIndex(bwt, max_val),
     prefix_sum_(max_val + 1),
-    wavelet_tree_(const_cast<char*>((const char*)bwt.data()), bwt.size(), max_val + 1) {
+    wavelet_tree_((char*)bwt.data(), bwt.size(), max_val + 1) {
 }
 
 WaveletFmIndex::~WaveletFmIndex() {
