@@ -26,6 +26,7 @@ class Unitigging {
   virtual ~Unitigging();
 
   void start();
+  ContigSet* contigs() const;
 
  private:
   overlap::ReadSet* reads_;

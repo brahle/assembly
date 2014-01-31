@@ -3,6 +3,7 @@
 
 #include <sys/types.h>
 #include <cstdint>
+#include <functional>
 #include <vector>
 
 #include "util.hpp"
@@ -16,12 +17,19 @@ struct Overlap {
 
   Overlap(uint32_t r1, uint32_t r2, uint32_t l1, uint32_t l2, Type t, int32_t s);
 
-  const uint32_t read_one;
-  const uint32_t read_two;
-  const uint32_t len_one;
-  const uint32_t len_two;
-  const Type type;
-  const int32_t score;
+  bool operator<(const Overlap& rhs) const;
+
+  uint32_t read_one;
+  uint32_t read_two;
+  uint32_t len_one;
+  uint32_t len_two;
+  Type type;
+  int32_t score;
+};
+
+class OverlapCmp : public std::binary_function<Overlap*, Overlap*, bool> {
+ public:
+  bool operator()(const Overlap* lhs, const Overlap* rhs) const;
 };
 
 class OverlapSet {
@@ -30,6 +38,9 @@ class OverlapSet {
   virtual ~OverlapSet();
 
   void Add(Overlap* overlap);
+  Overlap* Get(uint32_t idx) const;
+
+  void Sort();
 
   size_t size() const;
 

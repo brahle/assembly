@@ -18,10 +18,13 @@ class Contig {
 
   size_t size() const;
   void Join(BetterOverlapPtr better_overlap, Contig* contig);
+  bool IsUsable() const;
+  void SetValid(bool value);
 
  private:
   std::deque< BetterReadPtr > reads_;
   BetterReadSetPtr read_set_;
+  bool valid_;
   bool alive_;
   bool IsLeftOverlap(BetterOverlapPtr better_overlap) const;
   void Kill();

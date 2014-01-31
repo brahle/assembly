@@ -2,9 +2,12 @@
 #include <overlap/read.h>
 #include <overlap/overlap.h>
 #include <layout/better_overlap.h>
+#include <layout/contig.h>
+#include <layout/layout_utils.h>
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 #include <typeinfo>
 
 namespace test {
@@ -19,7 +22,7 @@ overlap::Read* UnitiggingTest::makeRead(const char* data) {
   size_t len = strlen(data);
   uint8_t* uint_data = new uint8_t[len];
   memcpy(uint_data, data, len);
-  return new overlap::Read(uint_data, len-1);
+  return new overlap::Read(uint_data, len-1, 0, 0);
 }
 
 UnitiggingIsTransitiveTest::UnitiggingIsTransitiveTest() {
@@ -135,6 +138,42 @@ bool UnitiggingContigTest::run() {
   return true;
 }
 
+UnitiggingCompleteTest::UnitiggingCompleteTest(
+    const char *read_file,
+    const char *overlap_file) {
+  rfd_ = fopen(read_file, "r");
+  ofd_ = fopen(overlap_file, "r");
+}
+
+UnitiggingCompleteTest::~UnitiggingCompleteTest() {
+  fclose(rfd_);
+  fclose(ofd_);
+}
+
+bool UnitiggingCompleteTest::run() {
+  auto read_set = layout::ReadReadsAfg(rfd_);
+  auto overlap_set = layout::ReadOverlapsAfg(read_set, ofd_);
+  auto unitigging = new layout::Unitigging(read_set, overlap_set);
+  clock_t start = clock();
+  unitigging->start();
+  printf("Unitigging done in %.2lfs\n", (clock() - start)/CLOCKS_PER_SEC);
+  layout::ContigSet* contigs = unitigging->contigs();
+  int number = 0;
+  for (size_t i = 0; i < contigs->size(); ++i) {
+    auto contig = (*contigs)[i];
+    if (!contig->IsUsable()) {
+      continue;
+    }
+    ++number;
+    printf("%d: %d\n", i, contig->size());
+  }
+  printf("Number of contigs = %d\n", number);
+  delete unitigging;
+  delete read_set;
+  delete overlap_set;
+  return true;
+}
+
 UnitiggingTestRunner::UnitiggingTestRunner() {
 }
 
@@ -185,6 +224,13 @@ int main() {
   ut.addTest(new test::UnitiggingContainmentTest());
   ut.addTest(new test::UnitiggingTransitiveTest());
   ut.addTest(new test::UnitiggingContigTest());
+  //  ovo je jako "porculansko"
+  ut.addTest(new test::UnitiggingCompleteTest(
+      "sample/small/minimus_results/reads.afg",
+      "sample/small/minimus_results/overlaps.afg"));
+  ut.addTest(new test::UnitiggingCompleteTest(
+      "sample/large/minimus_results/reads.afg",
+      "sample/large/minimus_results/overlaps.afg"));
   ut.run();
 
   return 0;

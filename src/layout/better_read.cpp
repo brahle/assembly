@@ -9,6 +9,8 @@ BetterRead::BetterRead(uint32_t id) : BetterRead(id, nullptr) {
 
 BetterRead::BetterRead(uint32_t id, ReadPtr read) :
     id_(id), read_(read), overlaps_(), finalized_(false) {
+  // TODO(brahle): vidi koliko bi ovo trebalo biti
+  overlaps_.reserve(10);
 }
 
 BetterRead::~BetterRead() {

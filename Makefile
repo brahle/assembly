@@ -9,7 +9,7 @@ VPATH=src:src/layout:src/overlap:src/test:bin
 # they are changed.
 HPP=util.h
 
-OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o union_find.o contig.o
+OBJ=fm_index.o overlap.o better_overlap.o better_read.o read.o sort.o suffix_array.o suffix_filter.o unitigging.o util.o union_find.o contig.o layout_utils.o
 OBJ_SPECIAL=sais.o
 ALL_OBJ=$(OBJ) $(OBJ_SPECIAL)
 
@@ -23,10 +23,10 @@ OPTIMIZATION_FLAGS=-flto -finline-limit=200
 ASORTED_FLAGS=-std=c++11
 WARINIG_FLAGS=-Wall -Wextra -pedantic -Werror
 FLAGS=$(OPTIMIZATION_FLAGS) $(ASORTED_FLAGS) $(WARNING_FLAGS) $(BUILD_NUMBER_LDFLAGS)
-DEBUG_FLAGS=-g -ggdb
+DEBUG_FLAGS=-g -ggdb -DDEBUG
 NODEBUG_FLAGS=-s -O3 -DNDEBUG
 
-CC=g++ $(FLAGS) $(DEBUG_FLAGS) -I$(INCLUDE)
+CC=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)
 CCE=g++ $(FLAGS) $(NO_DEBUG_FLAGS) -I$(INCLUDE)
 
 TEST=unitigging_test
@@ -71,4 +71,9 @@ test: $(TEST)
 	@for t in $(TEST) ; do \
 		/bin/echo -e "\e[34m$$t\033[0m" ; \
 		bin/$$t ; \
+	done
+
+valgrind-test: $(TEST)
+	@for t in $(TEST) ; do \
+		valgrind bin/$$t ; \
 	done

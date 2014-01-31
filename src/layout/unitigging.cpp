@@ -28,8 +28,14 @@ Unitigging::~Unitigging() {
 
 void Unitigging::start() {
   removeContainmentEdges();
+  //  printf("Bez kontejnmenta = %d\n", no_contains_->size());
   removeTransitiveEdges();
+  //  printf("Bez tranzitiva = %d\n", no_transitives_->size());
   makeContigs();
+}
+
+ContigSet* Unitigging::contigs() const {
+  return contigs_;
 }
 
 void Unitigging::removeContainmentEdges() {
@@ -83,7 +89,7 @@ bool Unitigging::isTransitive(
   return true;
 }
 
-void Unitigging::removeTransitiveEdges() {
+inline void Unitigging::removeTransitiveEdges() {
   layout::BetterReadSet brs(reads_, 1);
   for (size_t i = 0; i < no_contains_->size(); ++i) {
     auto better_overlap = (*no_contains_)[i];
@@ -94,6 +100,7 @@ void Unitigging::removeTransitiveEdges() {
   brs.Finalize();
 
   std::vector< size_t > erased;
+  erased.reserve(no_contains_->size());
   for (size_t i = 0; i < no_contains_->size(); ++i) {
     auto better_overlap = (*no_contains_)[i];
     auto overlap = better_overlap->overlap();
@@ -102,7 +109,8 @@ void Unitigging::removeTransitiveEdges() {
     auto v2 = brs[overlap->read_two]->overlaps();
     auto it1 = v1.begin();
     auto it2 = v2.begin();
-    while (it1 != v1.end() && it2 != v2.end()) {
+    bool done = false;
+    while (!done && it1 != v1.end() && it2 != v2.end()) {
       if (it1->first == overlap->read_one || it1->first == overlap->read_two) {
         ++it1;
         continue;
@@ -114,6 +122,7 @@ void Unitigging::removeTransitiveEdges() {
       if (it1->first == it2->first) {
         if (isTransitive(better_overlap, it1->second, it2->second)) {
           erased.emplace_back(i);
+          done = true;
         }
         ++it1;
         ++it2;
@@ -170,7 +179,7 @@ void Unitigging::makeContigs() {
       auto contig_one = uf.find(read_one);
       auto contig_two = uf.find(read_two);
       auto larger = uf.join(read_one, read_two);
-      if (larger == read_one) {
+      if (larger == contig_one) {
         (*contigs_)[contig_one]->Join(better_overlap, (*contigs_)[read_two]);
       } else {
         (*contigs_)[contig_two]->Join(better_overlap, (*contigs_)[read_one]);

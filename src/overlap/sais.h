@@ -24,8 +24,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef _SAIS_H
-#define _SAIS_H 1
+#ifndef OVERLAP_SAIS_H_
+#define OVERLAP_SAIS_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,4 +52,4 @@ sais_int_bwt(const int *T, int *U, int *A, int n, int k);
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* _SAIS_H */
+#endif  // OVERLAP_SAIS_H_

@@ -3,7 +3,7 @@
 namespace layout {
 
 Contig::Contig(BetterReadPtr starting, BetterReadSetPtr read_set) :
-    reads_(), read_set_(read_set), alive_(true) {
+    reads_(), read_set_(read_set), valid_(false), alive_(true) {
   reads_.emplace_back(starting);
 }
 
@@ -36,7 +36,16 @@ void Contig::Join(BetterOverlapPtr better_overlap, Contig* contig) {
           contig->reads_.rend());
     }
   }
+  valid_ = true;
   contig->Kill();
+}
+
+void Contig::SetValid(bool value = true) {
+  valid_ = value;
+}
+
+bool Contig::IsUsable() const {
+  return valid_ && alive_;
 }
 
 bool Contig::IsLeftOverlap(BetterOverlapPtr better_overlap) const {
@@ -46,7 +55,7 @@ bool Contig::IsLeftOverlap(BetterOverlapPtr better_overlap) const {
 }
 
 void Contig::Kill() {
-  alive_ = true;
+  alive_ = false;
   reads_.clear();
 }
 

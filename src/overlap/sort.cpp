@@ -71,7 +71,7 @@ std::vector<uint32_t> RadixStringOrder(const ReadSet& reads, const size_t max_va
       --start_idx;
     }
     // Calculate character bucket sizes.
-    memset(char_count, 0, sizeof char_count);
+    memset(char_count, 0, sizeof(uint32_t) * (max_val + 1));
     for (uint32_t rix = start_idx; rix < num_reads; ++rix) {
       uint8_t val = (*reads[order[rix]])[pos];
       char_count[val]++;

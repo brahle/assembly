@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <algorithm>
 
 #include "read.h"
 #include "sais.h"
@@ -14,7 +15,9 @@ SACA::~SACA() {}
 
 SaisSACA::SaisSACA() {}
 
-String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
+String* SaisSACA::BuildBWT(
+    const ReadSet& reads,
+    size_t depth) {
   size_t num_strings = reads.size();
   size_t bwt_size = num_strings;
 
@@ -33,10 +36,14 @@ String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
   }
   super_string[bwt_size] = '\0';
 
-  int* bwt32 = new int[bwt_size];
+  int* bwt32 = new int[bwt_size + 1];
+  bwt32[bwt_size] = '\0';
 
-  if (sais_int_bwt(super_string, bwt32, NULL, (int)bwt_size, depth) < 0) {
-    return NULL;
+  int32_t* A = new int32_t[bwt_size + 1];
+  int32_t ret = sais_int_bwt(super_string, bwt32, A, (int)bwt_size, num_strings + depth);
+  if (ret < 0) {
+    fprintf(stderr, "SAIS failed (%d).\n", ret);
+    return nullptr;
   }
 
   uint8_t* bwt = new uint8_t[bwt_size + 1];
@@ -46,6 +53,9 @@ String* SaisSACA::BuildBWT(const ReadSet& reads, size_t depth) {
   }
 
   delete[] super_string;
+  delete[] bwt32;
+  delete[] A;
+
   return new String(bwt, bwt_size);
 }
 

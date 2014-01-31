@@ -2,6 +2,7 @@
 #define TEST_UNITIGGING_TEST_
 
 #include <overlap/read.h>
+#include <overlap/overlap.h>
 #include <layout/unitigging.h>
 
 #include <vector>
@@ -42,6 +43,19 @@ class UnitiggingContigTest : public UnitiggingTest {
   UnitiggingContigTest();
   virtual ~UnitiggingContigTest();
   virtual bool run();
+};
+
+class UnitiggingCompleteTest : public UnitiggingTest {
+  typedef overlap::Read* ReadPtr;
+ public:
+  explicit UnitiggingCompleteTest(
+      const char* read_file,
+      const char *overlap_file);
+  virtual ~UnitiggingCompleteTest();
+  virtual bool run();
+ private:
+  FILE *rfd_;
+  FILE *ofd_;
 };
 
 class UnitiggingTestRunner {

@@ -12,8 +12,6 @@
 namespace overlap {
 
 
-const uint8_t* ReverseComplement(const uint8_t* data, size_t size);
-
 class String {
 public:
   String(const uint8_t* data, size_t size);
@@ -25,21 +23,28 @@ public:
   const uint8_t& operator[](const uint32_t idx) const;
   bool operator< (const String& other) const;
 
-private:
+protected:
   const uint8_t* data_;
   const size_t size_;
 };
 
 class Read : public String {
 public:
-  Read(const uint8_t* data, size_t size);
+  Read(const uint8_t* data, size_t size, uint32_t id, uint32_t orig_id);
   ~Read();
 
-  const uint8_t* data_rc() const;
+  uint32_t id() const;
+  uint32_t orig_id() const;
 
 private:
-  const uint8_t* data_rc_;
+  const uint32_t id_;
+  const uint32_t orig_id_;
 };
+
+const uint8_t* ReverseComplement(const uint8_t* data, size_t size);
+Read* ReverseComplement(const Read& read);
+
+void PrintRead(FILE* fd, const Read& read);
 
 class ReadSet {
 public:
@@ -56,9 +61,11 @@ public:
 
 private:
   std::vector<Read*> reads_;
+
+  DISALLOW_COPY_AND_ASSIGN(ReadSet);
 };
 
-ReadSet* ReadFasta(FILE* fd);
+ReadSet* ReadFasta(FILE* fd, size_t min_read_size);
 
 }  // namespace overlap
 
