@@ -6,5 +6,6 @@ sample/
 *.bak
 .*.swp
 callgrind.out.*
+massif.out.*
 *.out
 .#*
