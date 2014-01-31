@@ -3,14 +3,21 @@
 
 #include "util.h"
 
-
 namespace overlap {
 
 class ReadSet;
 class String;
 
-UintArray STLStringOrder(const ReadSet& strings);
-UintArray RadixStringOrder(const ReadSet& strings, const size_t max_val);
+// Return an array of indices representing the lexicographical ordering of a
+// set of reads, using STL's sorting algorithm.
+UintArray STLStringOrder(
+    const ReadSet& strings);
+
+// Return an array of indices representing the lexicographical ordering of a
+// set of reads, using radix sort.
+UintArray RadixStringOrder(
+    const ReadSet& strings,
+    const size_t max_val);
 
 }  // namespace overlap
 
