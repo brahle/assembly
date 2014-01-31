@@ -8,36 +8,41 @@
 
 #include "util.h"
 
-
 namespace overlap {
-
 
 class FmIndex;
 class OverlapSet;
 class Read;
 class ReadSet;
 
-
+// Interface for suffix filter algorithm.
 class SuffixFilter {
  public:
   SuffixFilter();
   virtual ~SuffixFilter();
 
+  // Find overlap candidates for all read.
   virtual OverlapSet* FindCandidates(
       const ReadSet& reads,
       const UintArray& read_order,
       const FmIndex& fmi) = 0;
 
+  // Filter out candidates that are not needed, like between same reads, or
+  // very similar overlaps, keeping the best ones only.
   virtual OverlapSet* FilterCandidates(
       const OverlapSet& candidates) = 0;
 
-  static size_t FactorSize(double error_rate, size_t min_overlap_size);
+  // Determine factor size based on error rate and overlap size threshold.
+  static size_t FactorSize(
+      double error_rate,
+      size_t min_overlap_size);
 
  protected:
+  // Factor size determined with command line flags.
   const size_t factor_size_;
 };
 
-
+// Suffix filter that uses BFS as it's search algorithm.
 class BFSSuffixFilter : public SuffixFilter {
  public:
   BFSSuffixFilter();

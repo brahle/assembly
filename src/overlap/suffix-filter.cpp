@@ -15,12 +15,10 @@
 #include "suffix-filter.h"
 #include "util.h"
 
-
 DECLARE_double(error_rate);
 DEFINE_int32(min_overlap_size, 25, "");
 
 namespace overlap {
-
 
 namespace {
 
@@ -58,6 +56,8 @@ SuffixFilter::~SuffixFilter() {
 }
 
 size_t SuffixFilter::FactorSize(double error_rate, size_t min_overlap_size) {
+  assert(error_rate > 0);
+  assert(min_overlap_size > 0);
   size_t final_size = 1000;
   for(size_t size = min_overlap_size; size < 1000; ++size) {
     size_t new_size = (size_t)(ceil(size / ceil(error_rate * size) + 1) + 1e-9);
@@ -136,6 +136,7 @@ BFSSuffixFilter::BFSContext::BFSContext(const Read& read, const UintArray& read_
 }
 
 void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
+  assert(start_pos < read_.size());
   Queue(0, fmi_.size(), 0, error, queue_[0], false);
 
   for (size_t qid = 0; !queue_[qid].empty(); qid = 1 - qid) {
@@ -144,7 +145,7 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
 
     while(!curr.empty()) {
       State& state = curr.front();
-      uint32_t error = states_.at(state);
+      error = states_.at(state);
 
       CheckOverlaps(state, start_pos, error);
 
