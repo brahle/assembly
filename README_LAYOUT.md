@@ -16,7 +16,7 @@ Kompilacija:
 Pokretanje
 ----------
 
-1. `bin/main_layout` <.afg file with reads> <.afg file with overlaps>
+1. `bin/main_layout <.afg file with reads> <.afg file with overlaps>`
 
 Opcionalno:
 -----------
