@@ -9,15 +9,15 @@ namespace overlap {
 Overlap::Overlap(
     uint32_t r1,
     uint32_t r2,
+    Type t,
     uint32_t l1,
     uint32_t l2,
-    Type t,
     int32_t s)
     : read_one(r1),
       read_two(r2),
+      type(t),
       len_one(l1),
       len_two(l2),
-      type(t),
       score(s) {}
 
 bool Overlap::operator<(const Overlap& rhs) const {
@@ -43,23 +43,31 @@ OverlapSet::~OverlapSet() {
   }
 }
 
-void OverlapSet::Add(Overlap* overlap) {
- overlaps_.push_back(overlap);
-}
-
-Overlap* OverlapSet::Get(uint32_t idx) const {
-  return overlaps_[idx];
+size_t OverlapSet::size() const {
+  return overlaps_.size();
 }
 
 void OverlapSet::Sort() {
   std::sort(overlaps_.begin(), overlaps_.end(), OverlapCmp());
 }
 
-size_t OverlapSet::size() const {
-  return overlaps_.size();
+void OverlapSet::Add(Overlap* overlap) {
+ overlaps_.push_back(overlap);
 }
 
-Overlap* const& OverlapSet::operator[](uint32_t idx) const {
+const Overlap* OverlapSet::Get(uint32_t idx) const {
+  return overlaps_[idx];
+}
+
+Overlap* OverlapSet::Get(uint32_t idx) {
+  return overlaps_[idx];
+}
+
+const Overlap* OverlapSet::operator[](uint32_t idx) const {
+  return overlaps_[idx];
+}
+
+Overlap* OverlapSet::operator[](uint32_t idx) {
   return overlaps_[idx];
 }
 

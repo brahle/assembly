@@ -10,7 +10,6 @@ DEFINE_int32(min_read_size, 50, "");
 
 namespace overlap {
 
-
 String::String(uint8_t* data, size_t size)
     : data_(data), size_(size) {
 }
@@ -18,7 +17,7 @@ String::String(uint8_t* data, size_t size)
 String::~String() {
 }
 
-uint8_t* String::data() const {
+const uint8_t* String::data() const {
   return data_.get();
 }
 
@@ -31,10 +30,12 @@ size_t String::size() const {
 }
 
 const uint8_t& String::operator[] (const uint32_t idx) const {
+  assert(idx <= size_);
   return data_[idx];
 }
 
 uint8_t& String::operator[] (const uint32_t idx) {
+  assert(idx <= size_);
   return data_[idx];
 }
 
@@ -117,6 +118,7 @@ uint8_t* ReverseComplement(uint8_t* data, size_t size) {
   uint8_t* data_rc = new uint8_t[size + 1];
   data_rc[size] = '\0';
   for (uint32_t idx = 0; idx < size; ++idx) {
+    assert(data[idx] > 0 && data[idx] < 5);
     data_rc[size - idx - 1] = 5 - data[idx];
   }
   return data_rc;
@@ -130,7 +132,7 @@ Read* ReverseComplement(Read& read) {
       read.orig_id());
 }
 
-void PrintRead(FILE* fp, const Read& read) {
+void PrintRead(FILE* fp, Read& read) {
   const uint8_t* ez = ArrayToDNA(read.data(), read.size());
   fprintf(fp, "%s\n", (const char*)ez);
   delete[] ez;
@@ -144,14 +146,17 @@ ReadSet::~ReadSet() {
 }
 
 void ReadSet::Add(Read* read) {
+  assert(read);
   reads_.emplace_back(read);
 }
 
 const Read* ReadSet::Get(uint32_t read_idx) const {
+  assert(read_idx < reads_.size());
   return reads_[read_idx].get();
 }
 
 Read* ReadSet::Get(uint32_t read_idx) {
+  assert(read_idx < reads_.size());
   return reads_[read_idx].get();
 }
 
@@ -160,10 +165,12 @@ size_t ReadSet::size() const {
 }
 
 const Read* ReadSet::operator[] (const uint32_t idx) const {
+  assert(idx < reads_.size());
   return reads_[idx].get();
 }
 
 Read* ReadSet::operator[] (const uint32_t idx) {
+  assert(idx < reads_.size());
   return reads_[idx].get();
 }
 
@@ -187,6 +194,5 @@ ReadSet* ReadFasta(FILE* fp) {
 
   return read_set;
 }
-
 
 }  // namespace overlap

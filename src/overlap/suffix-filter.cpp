@@ -25,11 +25,11 @@ namespace overlap {
 namespace {
 
 void FilterPass(
-    const std::vector<Overlap*>& invec,
-    std::vector<Overlap*>& outvec) {
+    const std::vector<const Overlap*>& invec,
+    std::vector<const Overlap*>& outvec) {
 
-  Overlap* prev = nullptr;
-  for (Overlap* curr : invec) {
+  const Overlap* prev = nullptr;
+  for (auto curr : invec) {
     if (prev == nullptr) {
       outvec.push_back(curr);
       prev = curr;
@@ -100,16 +100,16 @@ OverlapSet* BFSSuffixFilter::FindCandidates(const ReadSet& reads,
 }
 
 OverlapSet* BFSSuffixFilter::FilterCandidates(const OverlapSet& candidates) {
-  std::vector<Overlap*> cont;
+  std::vector<const Overlap*> cont;
 
   for (uint32_t idx = 0; idx < candidates.size(); ++idx) {
-    Overlap* curr = candidates[idx];
+    const Overlap* curr = candidates[idx];
     if (curr->read_one != curr->read_two) {
       cont.push_back(curr);
     }
   }
 
-  std::vector<Overlap*> fwd, bwd;
+  std::vector<const Overlap*> fwd, bwd;
   FilterPass(cont, fwd);
 
   std::reverse(fwd.begin(), fwd.end());
@@ -118,7 +118,7 @@ OverlapSet* BFSSuffixFilter::FilterCandidates(const OverlapSet& candidates) {
   std::reverse(bwd.begin(), bwd.end());
   std::unique_ptr<OverlapSet> filtered(new OverlapSet(bwd.size()));
 
-  for (Overlap* o : bwd) {
+  for (auto o : bwd) {
     filtered->Add(new Overlap(*o));
   }
 
@@ -144,7 +144,7 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
 
     while(!curr.empty()) {
       State& state = curr.front();
-      uint32_t error = states_[state];
+      uint32_t error = states_.at(state);
 
       CheckOverlaps(state, start_pos, error);
 
@@ -188,8 +188,8 @@ void BFSSuffixFilter::BFSContext::CheckOverlaps(
 
     for (uint32_t idx = low; idx < high; ++idx) {
       results_->Add(
-          new Overlap(read_.id(), read_order_[idx], overlap_size,
-                      overlap_size, Overlap::Type::EB, error));
+          new Overlap(read_.id(), read_order_[idx], Overlap::Type::EB,
+                      overlap_size, overlap_size, error));
     }
   }
 }
@@ -199,7 +199,9 @@ void BFSSuffixFilter::BFSContext::Queue(uint32_t low, uint32_t high,
   State new_state = {low, high, pos};
   if (states_.find(new_state) == states_.end()) {
     queue.push(new_state);
-    states_[new_state] = error + (can_inc && !(pos % factor_size_) ? 1 : 0);
+    states_.insert(StateMap::value_type(
+          new_state,
+          error + (can_inc && !(pos % factor_size_) ? 1 : 0)));
   }
 }
 

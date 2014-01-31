@@ -5,7 +5,7 @@
 #include "overlap/overlap.h"
 
 TEST(OverlapTest, Usual) {
-  overlap::Overlap o(10, 20, 50, 60, overlap::Overlap::EB, 12);
+  overlap::Overlap o(10, 20, overlap::Overlap::EB, 50, 60, 12);
   EXPECT_EQ(10, o.read_one);
   EXPECT_EQ(20, o.read_two);
   EXPECT_EQ(50, o.len_one);
@@ -15,7 +15,7 @@ TEST(OverlapTest, Usual) {
 }
 
 TEST(OverlapTest, Compare) {
-  overlap::Overlap o(1, 2, 3, 4, overlap::Overlap::EB, 10);
+  overlap::Overlap o(1, 2, overlap::Overlap::EB, 3, 4, 10);
   overlap::Overlap p(o);
   overlap::OverlapCmp cmp;
 
@@ -54,13 +54,13 @@ TEST(OverlapTest, Compare) {
 
 TEST(OverlapSetTest, Usual) {
   std::vector<overlap::Overlap> raw_overlaps {
-    overlap::Overlap(1, 2, 3, 4, overlap::Overlap::EB, 10),
-    overlap::Overlap(1, 3, 3, 5, overlap::Overlap::BE, 12),
-    overlap::Overlap(1, 2, 2, 3, overlap::Overlap::BE, 5),
-    overlap::Overlap(2, 3, 2, 4, overlap::Overlap::BB, 8),
-    overlap::Overlap(2, 3, 2, 3, overlap::Overlap::BB, 6),
-    overlap::Overlap(3, 4, 2, 3, overlap::Overlap::EE, 8),
-    overlap::Overlap(3, 5, 2, 3, overlap::Overlap::EB, 6)
+    overlap::Overlap(1, 2, overlap::Overlap::EB, 3, 4, 10),
+    overlap::Overlap(1, 3, overlap::Overlap::BE, 3, 5, 12),
+    overlap::Overlap(1, 2, overlap::Overlap::BE, 2, 3, 5),
+    overlap::Overlap(2, 3, overlap::Overlap::BB, 2, 4, 8),
+    overlap::Overlap(2, 3, overlap::Overlap::BB, 2, 3, 6),
+    overlap::Overlap(3, 4, overlap::Overlap::EE, 2, 3, 8),
+    overlap::Overlap(3, 5, overlap::Overlap::EB, 2, 3, 6)
   };
   overlap::OverlapSet overlaps(10);
 

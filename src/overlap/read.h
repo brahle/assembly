@@ -9,7 +9,6 @@
 
 #include "util.h"
 
-
 namespace overlap {
 
 // Basic wrapper around raw C-style strings.
@@ -18,20 +17,22 @@ public:
   // Construct a new String, taking ownership of 'data'.
   String(uint8_t* data, size_t size);
   virtual ~String();
-  // Return raw string data.
-  uint8_t* data() const;
-  uint8_t* data();
+
   // Return string size.
   size_t size() const;
+  // Return raw string data.
+  const uint8_t* data() const;
+  uint8_t* data();
+
   // Get character at position 'pos'.
   const uint8_t& operator[](const uint32_t pos) const;
   uint8_t& operator[](const uint32_t pos);
+
   // Compare strings lexicographically.
   bool operator< (const String& other) const;
 
 protected:
   // String data. Owned.
-  //uint8_t* data_;
   std::unique_ptr<uint8_t[]> data_;
   // String size, excluding null character.
   const size_t size_;
@@ -45,6 +46,7 @@ public:
   // Construct a new Read, taking ownership of 'data'.
   Read(uint8_t* data, size_t size, uint32_t id, uint32_t orig_id);
   ~Read();
+
   // Return read ID (internal).
   uint32_t id() const;
   // Return original read ID (external).
@@ -66,41 +68,44 @@ private:
 // A -> 1, C -> 2, G -> 3, T -> 4
 uint8_t* DNAToArray(uint8_t* data, size_t size);
 Read* DNAToArray(Read& read);
-
 // Transform an integer array of DNA to a string.
 // 1 -> A, 2 -> C, 3 -> G, 4 -> T
 uint8_t* ArrayToDNA(uint8_t* data, size_t size);
 Read* ArrayToDNA(Read& read);
-
 // Create a reverse complement of the integer array of DNA.
 uint8_t* ReverseComplement(uint8_t* data, size_t size);
 Read* ReverseComplement(Read& read);
 
 // Print read in integer form in it's string form.
-void PrintRead(FILE* fp, const Read& read);
+void PrintRead(FILE* fp, Read& read);
 
-// Container for reads.
+// Sequential container for reads.
 class ReadSet {
 public:
   // Create a new ReadSet given the approximate number of reads to be added.
   ReadSet(size_t capacity);
   ~ReadSet();
 
-  void Add(Read* read);
-  const Read* Get(uint32_t read_idx) const;
-  Read* Get(uint32_t read_idx);
-
+  // Return number of contained reads.
   size_t size() const;
 
+  // Add the read at the end and take ownership.
+  void Add(Read* read);
+
+  // Return the read at position 'read_idx'.
+  const Read* Get(uint32_t read_idx) const;
+  Read* Get(uint32_t read_idx);
   const Read* operator[](const uint32_t idx) const;
   Read* operator[](const uint32_t idx);
 
 private:
+  // Contained reads. Owned.
   std::vector<std::unique_ptr<Read>> reads_;
 
   DISALLOW_COPY_AND_ASSIGN(ReadSet);
 };
 
+// Input a set of reads from a FASTA file.
 ReadSet* ReadFasta(FILE* fp);
 
 }  // namespace overlap

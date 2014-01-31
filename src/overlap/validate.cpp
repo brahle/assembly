@@ -36,7 +36,7 @@ OverlapSet* ValidateCandidates(
   const double extra_ratio = 1 + (FLAGS_error_rate * FLAGS_error_mult);
 
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
-    Overlap* o = candidates[oid];
+    const Overlap* o = candidates[oid];
 
     const Read* read_one = reads[o->read_one];
     const Read* read_two = reads[o->read_two];
@@ -54,14 +54,15 @@ OverlapSet* ValidateCandidates(
         &len_two);
 
     if (ret == MYERS_STATUS_OK and len_two != -1 and score != -1) {
-      o->len_two = len_two + 1;
-      o->score = score;
-      o->score = OverlapConfidence(o);
+      Overlap* new_o = new Overlap(*o);
+      new_o->len_two = len_two + 1;
+      new_o->score = score;
+      new_o->score = OverlapConfidence(new_o);
 
-      auto elem = best.find(std::make_pair(o->read_one, o->read_two));
-      if (elem == best.end() or elem->second->score < o->score) {
-        best[std::make_pair(o->read_one, o->read_two)] = o;
-        best[std::make_pair(o->read_two, o->read_one)] = o;
+      auto elem = best.find(std::make_pair(new_o->read_one, new_o->read_two));
+      if (elem == best.end() or elem->second->score < new_o->score) {
+        best[std::make_pair(o->read_one, o->read_two)] = new_o;
+        best[std::make_pair(o->read_two, o->read_one)] = new_o;
       }
     }
   }
