@@ -11,8 +11,8 @@ CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PR
 LDFLAGS=-L$(PROJDIR)/lib -lgflags
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)
-SRC=read.cpp fm-index.cpp myers.cpp overlap.cpp sort.cpp suffix-array.cpp \
-	validate.cpp suffix-filter.cpp sais.cpp \
+SRC=read.cpp fm-index.cpp overlap.cpp sort.cpp suffix-array.cpp \
+	validate.cpp myers.cpp suffix-filter.cpp sais.cpp \
 	wavelet-tree.cpp ranked-bitmap.cpp
 OBJ=$(addprefix $(ODIR)/, $(SRC:.cpp=.o))
 # Test sources and object files.

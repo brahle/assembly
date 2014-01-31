@@ -2,13 +2,15 @@
 
 #include <stdint.h>
 
+using namespace std;
+
 namespace overlap {
 
 namespace {
 
 typedef uint64_t Word;
-const int32_t kWordSize = sizeof(Word) * 8;
-const Word kHighBitMask = ((Word)1) << (kWordSize-1);
+const int WORD_SIZE = sizeof(Word) * 8; // Size of Word in bits
+const Word HIGH_BIT_MASK = ((Word)1) << (WORD_SIZE-1);
 
 /**
  * Corresponds to Advance_Block function from Myers.
@@ -33,9 +35,9 @@ inline int calculateBlock(Word Pv, Word Mv, Word Eq, const int hin,
     Word Mh = Pv & Xh;
 
     int hout = 0;
-    if (Ph & kHighBitMask)
+    if (Ph & HIGH_BIT_MASK)
         hout = 1;
-    else if (Mh & kHighBitMask)
+    else if (Mh & HIGH_BIT_MASK)
         hout = -1;
 
     Ph <<= 1;
@@ -80,12 +82,12 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
     // firstBlock is 0-based index of first block in Ukkonen band.
     // lastBlock is 0-based index of block AFTER last block in Ukkonen band. <- WATCH OUT!
     int firstBlock = 0;
-    int lastBlock = min(ceilDiv(k + 1, kWordSize), maxNumBlocks); // y in Myers
+    int lastBlock = min(ceilDiv(k + 1, WORD_SIZE), maxNumBlocks); // y in Myers
 
     // Initialize P, M and score
     for (int b = 0; b < lastBlock; b++) {
-        score[b] = (b+1) * kWordSize;
-        P[b] = (Word)-1; // All 1s
+        score[b] = (b+1) * WORD_SIZE;
+        P[b] = (Word)-1; // All 1s0
         M[b] = (Word)0;
     }
 
@@ -96,7 +98,7 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
         Word* Peq_c = c < targetLength ? Peq[target[c]] : Peq[alphabetLength];
 
         //----------------------- Calculate column -------------------------//
-        int hout = mode == MYERS_MODE_HW ? 0 : 1;
+        int hout = mode == MYERS_MODE_HW ? 0 : 1; // If 0 then gap before query is not penalized
         for (int b = firstBlock; b < lastBlock; b++) {
             hout = calculateBlock(P[b], M[b], Peq_c[b], hout, P[b], M[b]);
             score[b] += hout;
@@ -104,8 +106,10 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
         //------------------------------------------------------------------//
 
         //---------- Adjust number of blocks according to Ukkonen ----------//
-        if (score[firstBlock] >= k + kWordSize)
-            firstBlock++;
+        if (mode != MYERS_MODE_HW)
+            if (score[firstBlock] >= k + WORD_SIZE) {
+                firstBlock++;
+            }
 
         if ((score[lastBlock-1] - hout <= k) && (lastBlock < maxNumBlocks)
             && ((Peq_c[lastBlock] & (Word)1) || hout < 0)) {
@@ -114,16 +118,16 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
             int b = lastBlock-1; // index of last block (one we just added)
             P[b] = (Word)-1; // All 1s
             M[b] = (Word)0;
-            score[b] = score[b-1] - hout + kWordSize + calculateBlock(P[b], M[b], Peq_c[b], hout, P[b], M[b]);
-        }
-        else
-            while (lastBlock > 0 && score[lastBlock-1] >= k + kWordSize)
+            score[b] = score[b-1] - hout + WORD_SIZE + calculateBlock(P[b], M[b], Peq_c[b], hout, P[b], M[b]);
+        } else {
+            while (lastBlock > 0 && score[lastBlock-1] >= k + WORD_SIZE)
                 lastBlock--;
+        }
 
-        // If band stops to exist, return -1
+        // If band stops to exist finish
         if (lastBlock <= firstBlock) {
-            *bestScore_ = -1;
-            *position_ = -1;
+            *bestScore_ = bestScore;
+            *position_ = position;
             return MYERS_STATUS_OK;
         }
         //------------------------------------------------------------------//
@@ -136,6 +140,7 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
                 if (bestScore == -1 || colScore < bestScore) {
                     bestScore = colScore;
                     position = c - W;
+                    k = bestScore - 1; // Change k so we will look only for better scores then the best found so far.
                 }
             }
         }
@@ -152,8 +157,7 @@ int myersCalcEditDistanceSemiGlobal(Word* P, Word* M, int* score, Word** Peq, in
 
 
 int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int maxNumBlocks,
-                                   int queryLength,
-                                   const unsigned char* target, int targetLength,
+                                   int queryLength, const unsigned char* target, int targetLength,
                                    int k, int* bestScore_, int* position_) {
 
     if (k < abs(targetLength - queryLength)) {
@@ -165,11 +169,11 @@ int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int
     // lastBlock is 0-based index of block AFTER last block in Ukkonen band. <- WATCH OUT!
     int firstBlock = 0;
     // Added + 1 below, without it about 2 of 100000 test examples fail
-    int lastBlock = min(ceilDiv(k - abs(targetLength - queryLength) + 1, kWordSize), maxNumBlocks); // y in Myers
+    int lastBlock = min(ceilDiv(k - abs(targetLength - queryLength) + 1, WORD_SIZE), maxNumBlocks); // y in Myers
 
     // Initialize P, M and score
     for (int b = 0; b < lastBlock; b++) {
-        score[b] = (b+1) * kWordSize;
+        score[b] = (b+1) * WORD_SIZE;
         P[b] = (Word)-1; // All 1s
         M[b] = (Word)0;
     }
@@ -187,13 +191,13 @@ int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int
 
         //---------- Adjust number of blocks according to Ukkonen ----------//
         // Adjust first block
-        if (score[firstBlock] >= k + kWordSize) // TODO: put some stronger constraint
+          if (score[firstBlock] >= k + WORD_SIZE) // TODO: put some stronger constraint
             firstBlock++;
 
         // Adjust last block
         if (score[lastBlock-1] - hout // score of block to left
             + max(0, targetLength - c/*column of block to left*/)
-            + max(0, queryLength - (lastBlock * kWordSize) <= k)
+            + max(0, queryLength - (lastBlock * WORD_SIZE) <= k)
             && (lastBlock < maxNumBlocks)
             && ((Peq_c[lastBlock] & (Word)1) || hout < 0)) {
             // If score of left block is not too big, calculate one more block
@@ -201,16 +205,13 @@ int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int
             int b = lastBlock-1; // index of last block (one we just added)
             P[b] = (Word)-1; // All 1s
             M[b] = (Word)0;
-            score[b] = score[b-1] - hout + kWordSize + calculateBlock(P[b], M[b], Peq_c[b], hout, P[b], M[b]);
+            score[b] = score[b-1] - hout + WORD_SIZE + calculateBlock(P[b], M[b], Peq_c[b], hout, P[b], M[b]);
         } else {
-            while (lastBlock > 0
-                   && score[lastBlock-1] >= k - max(0, targetLength - (c + 1))
-                   - max(0, queryLength - (lastBlock * kWordSize)) + kWordSize) {
+            while (lastBlock > 0 && score[lastBlock-1] >= k + WORD_SIZE) // TODO: put some stronger constraint
                 lastBlock--;
-            }
         }
 
-        // If band stops to exist, return -1
+        // If band stops to exist finish
         if (lastBlock <= firstBlock) {
             *bestScore_ = *position_ = -1;
             return MYERS_STATUS_OK;
@@ -223,9 +224,9 @@ int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int
         int bestScore = score[maxNumBlocks-1];
 
         for (int i = 0; i < W; i++) {
-            if (P[maxNumBlocks-1] & kHighBitMask)
+            if (P[maxNumBlocks-1] & HIGH_BIT_MASK)
                 bestScore--;
-            if (M[maxNumBlocks-1] & kHighBitMask)
+            if (M[maxNumBlocks-1] & HIGH_BIT_MASK)
                 bestScore++;
             P[maxNumBlocks-1] <<= 1;
             M[maxNumBlocks-1] <<= 1;
@@ -238,26 +239,25 @@ int myersCalcEditDistanceNW(Word* P, Word* M, int* score, Word** Peq, int W, int
         }
     }
 
-
     *bestScore_ = *position_ = -1;
     return MYERS_STATUS_OK;
 }
 
-}  // unnamed namespace
+}
 
 int MyersEditDistance(const unsigned char* query, int queryLength,
-                      const unsigned char* target, int targetLength,
-                      int alphabetLength, int k, int mode, int* bestScore, int* position) {
+                          const unsigned char* target, int targetLength,
+                          int alphabetLength, int k, int mode, int* bestScore, int* position) {
 
     /*--------------------- INITIALIZATION ------------------*/
-    int maxNumBlocks = ceilDiv(queryLength, kWordSize); // bmax in Myers
+    int maxNumBlocks = ceilDiv(queryLength, WORD_SIZE); // bmax in Myers
 
     Word* P = new Word[maxNumBlocks]; // Contains Pvin for each block (column is divided into blocks)
     Word* M = new Word[maxNumBlocks]; // Contains Mvin for each block
     int* score = new int[maxNumBlocks]; // Contains score for each block
     Word** Peq = new Word*[alphabetLength+1]; // [alphabetLength+1][maxNumBlocks]. Last symbol is wildcard.
 
-    int W = maxNumBlocks * kWordSize - queryLength; // number of redundant cells in last level blocks
+    int W = maxNumBlocks * WORD_SIZE - queryLength; // number of redundant cells in last level blocks
 
     // Build Peq (1 is match, 0 is mismatch). NOTE: last column is wildcard(symbol that matches anything) with just 1s
     for (int symbol = 0; symbol <= alphabetLength; symbol++) {
@@ -265,7 +265,7 @@ int MyersEditDistance(const unsigned char* query, int queryLength,
         for (int b = 0; b < maxNumBlocks; b++) {
             if (symbol < alphabetLength) {
                 Peq[symbol][b] = 0;
-                for (int r = (b+1) * kWordSize - 1; r >= b * kWordSize; r--) {
+                for (int r = (b+1) * WORD_SIZE - 1; r >= b * WORD_SIZE; r--) {
                     Peq[symbol][b] <<= 1;
                     // NOTE: We pretend like query is padded at the end with W wildcard symbols
                     if (r >= queryLength || query[r] == symbol)
@@ -283,7 +283,7 @@ int MyersEditDistance(const unsigned char* query, int queryLength,
     *bestScore = -1;
     *position = -1;
     if (k < 0) { // If valid k is not given, auto-adjust k until solution is found.
-        k = kWordSize;
+        k = WORD_SIZE; // Gives better results then smaller k
         while (*bestScore == -1) {
             if (mode == MYERS_MODE_HW || mode == MYERS_MODE_SHW)
                 myersCalcEditDistanceSemiGlobal(P, M, score, Peq, W, maxNumBlocks,
@@ -318,6 +318,5 @@ int MyersEditDistance(const unsigned char* query, int queryLength,
 
     return MYERS_STATUS_OK;
 }
-
 
 }  // namespace overlap
