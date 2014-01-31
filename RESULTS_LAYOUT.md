@@ -23,7 +23,9 @@ Prvih 500 redaka iz readsim-1.5/example/ecoli/NC_000913.fna, sto je ukupno
 * 1323 overlapa
 
 Minimus (faza layouta):   0 s
+
 main_layout (unitigging): 0.00 s
+
 main_layout (kompletan):  0.03 s 
 
 Veliki primjer
@@ -35,7 +37,9 @@ Cijela readsim-1.5/example/ecoli/NC_000913.fna, sto je ukupno 4638675 baza.
 * 249674 overlapa
 
 Minimus (faza layouta):   2 s
+
 main_layout (unitigging): 0.09 s
+
 main_layout (kompeltan):  3.53 s
 
 
