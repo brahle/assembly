@@ -1,3 +1,4 @@
+#include <cassert>
 #include <algorithm>
 
 #include "overlap.h"
@@ -52,22 +53,27 @@ void OverlapSet::Sort() {
 }
 
 void OverlapSet::Add(Overlap* overlap) {
- overlaps_.push_back(overlap);
+  assert(overlap);
+  overlaps_.push_back(overlap);
 }
 
 const Overlap* OverlapSet::Get(uint32_t idx) const {
+  assert(idx < overlaps_.size());
   return overlaps_[idx];
 }
 
 Overlap* OverlapSet::Get(uint32_t idx) {
+  assert(idx < overlaps_.size());
   return overlaps_[idx];
 }
 
 const Overlap* OverlapSet::operator[](uint32_t idx) const {
+  assert(idx < overlaps_.size());
   return overlaps_[idx];
 }
 
 Overlap* OverlapSet::operator[](uint32_t idx) {
+  assert(idx < overlaps_.size());
   return overlaps_[idx];
 }
 

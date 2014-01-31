@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdint>
 #include <algorithm>
 #include <map>
@@ -14,7 +15,6 @@ DEFINE_double(error_rate, 0.01, "");
 DEFINE_int32(error_mult, 3, "");
 
 namespace overlap {
-
 
 namespace {
 

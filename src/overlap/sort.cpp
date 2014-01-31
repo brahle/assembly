@@ -5,16 +5,15 @@
 #include "read.h"
 #include "sort.h"
 
-
 namespace overlap {
-
 
 namespace {
 
-
+// Comparator for indices of reads in their container. Sorts lexicographically.
 class ReadCompare : public std::binary_function<uint32_t, uint32_t, bool> {
  public:
-  ReadCompare(const ReadSet& reads) : reads_(reads) {}
+  ReadCompare(const ReadSet& reads) : reads_(reads) {
+  }
   bool operator() (uint32_t one, uint32_t two) const {
     return (*reads_[one]) < (*reads_[two]);
   }
@@ -23,14 +22,13 @@ class ReadCompare : public std::binary_function<uint32_t, uint32_t, bool> {
   const ReadSet& reads_;
 };
 
-
+// Comparator for indices of reads in their container. Sorts them by length.
 class ReadLenCompare : public std::binary_function<uint32_t, uint32_t, bool> {
  public:
   ReadLenCompare(const ReadSet& reads) : reads_(reads) {}
   bool operator() (uint32_t one, uint32_t two) const {
     return reads_[one]->size() < reads_[two]->size();
   }
-
  private:
   const ReadSet& reads_;
 };
