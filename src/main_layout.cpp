@@ -29,6 +29,6 @@ int main(int argc, char *argv[]) {
       (clock() - start) / static_cast<double>(CLOCKS_PER_SEC));
 
   fclose(overlaps_file);
-  fclose (reads_file);
+  fclose(reads_file);
   return 0;
 }
