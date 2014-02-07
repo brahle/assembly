@@ -7,7 +7,7 @@ VPATH=$(PROJDIR)/src:$(PROJDIR)/src/overlap:$(PROJDIR)/src/overlap/test:$(PROJDI
 # Compiler and linker settings.
 CXX=g++
 # Targets.
-CFLAGS=-Wall -Wextra -Werror -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PROJDIR)/include -I$(PROJDIR)/src
+CFLAGS=-Wall -Wextra -pedantic -std=c++11 -I$(PROJDIR)/src -isystem $(PROJDIR)/include -I$(PROJDIR)/src
 LDFLAGS=-L$(PROJDIR)/lib -lgflags
 # Main sources and object files.
 BIN=$(addprefix $(BDIR)/, olapper olapper_test)

@@ -25,7 +25,14 @@ class SACA {
 class SaisSACA : public SACA {
   public:
     SaisSACA();
+    // See comments for SACA::BuildBWT().
+    String* BuildBWT(const ReadSet& reads, size_t alphabet_size);
+};
 
+// Another Yuta Mori's SACA implementation. Uses less memory.
+class Sais2SACA : public SACA {
+  public:
+    Sais2SACA();
     // See comments for SACA::BuildBWT().
     String* BuildBWT(const ReadSet& reads, size_t alphabet_size);
 };

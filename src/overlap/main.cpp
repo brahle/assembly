@@ -81,12 +81,12 @@ int main(int argc, char* argv[]) {
   size_t num_overlaps = candidates->size();
 
   printf("\nSummary\n");
-  printf(" + number of reads: %d\n", num_reads);
-  printf(" + size of BWT: %d\n", bwt_size);
-  printf(" + number of raw candidates: %d\n", num_raw_candidates);
-  printf(" + number of filtered candidates: %d\n", num_filtered_candidates);
-  printf(" + number of overlaps: %d\n", num_overlaps);
-  printf(" + wall time: %.2fs\n", ((double)curr - start) / CLOCKS_PER_SEC);
+  printf(" + number of reads: %zd\n", num_reads);
+  printf(" + size of BWT: %zd\n", bwt_size);
+  printf(" + number of raw candidates: %zd\n", num_raw_candidates);
+  printf(" + number of filtered candidates: %zd\n", num_filtered_candidates);
+  printf(" + number of overlaps: %zd\n", num_overlaps);
+  printf(" + wall time: %z.2fs\n", ((double)curr - start) / CLOCKS_PER_SEC);
 
   FILE* fout = fopen(argv[2], "w");
   for (uint32_t oid = 0; oid < candidates->size(); ++oid) {

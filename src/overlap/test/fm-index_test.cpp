@@ -77,7 +77,7 @@ TEST(BucketedFmIndexTest, Integration) {
   }
 
   overlap::UintArray order = overlap::STLStringOrder(reads);
-  overlap::SaisSACA saca;
+  overlap::Sais2SACA saca;
   std::unique_ptr<overlap::String> bwt(saca.BuildBWT(reads, 4));
   overlap::BucketedFmIndex fmi(*bwt, 4, 32);
   fmi.Init();
