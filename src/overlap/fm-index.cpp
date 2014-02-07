@@ -8,9 +8,10 @@
 namespace overlap {
 
 FmIndex::FmIndex(
-    String& bwt,
+    String* bwt,
     size_t max_val)
-    : size_(bwt.size()),
+    : bwt_(bwt),
+      size_(bwt->size()),
       max_val_(max_val) {
 }
 
@@ -26,11 +27,11 @@ size_t FmIndex::max_val() const {
 }
 
 BucketedFmIndex::BucketedFmIndex(
-    String& bwt,
+    String* bwt,
     size_t max_val,
     size_t bucket_size)
     : FmIndex(bwt, max_val),
-      bwt_data_(bwt.data()),
+      bwt_data_(bwt->data()),
       prefix_sum_(new uint32_t[max_val_ + 2]),
       bucket_size_(bucket_size),
       num_buckets_((size_ - 1) / bucket_size_ + 2),
@@ -94,10 +95,10 @@ uint32_t BucketedFmIndex::Rank(uint8_t chr, uint32_t pos) const {
   return count;
 }
 
-WaveletFmIndex::WaveletFmIndex(String& bwt, size_t max_val)
+WaveletFmIndex::WaveletFmIndex(String* bwt, size_t max_val)
   : FmIndex(bwt, max_val),
     prefix_sum_(max_val + 1),
-    wavelet_tree_((char*)bwt.data(), bwt.size(), max_val + 1) {
+    wavelet_tree_((char*)bwt->data(), bwt->size(), max_val + 1) {
 }
 
 WaveletFmIndex::~WaveletFmIndex() {
@@ -111,6 +112,7 @@ void WaveletFmIndex::Init() {
   }
 }
 
+/*
 uint32_t WaveletFmIndex::Less(uint8_t chr) const {
   assert(chr <= max_val_);
   return prefix_sum_[chr];
@@ -121,5 +123,6 @@ uint32_t WaveletFmIndex::Rank(uint8_t chr, uint32_t pos) const {
   assert(pos <= size_);
   return wavelet_tree_.get_rank(chr, pos);
 }
+*/
 
 }  // namespace overlap

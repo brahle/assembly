@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
   printf("Building FM-index.\n");
   prev = clock();
-  overlap::WaveletFmIndex fmi(*bwt, 4);
+  overlap::WaveletFmIndex fmi(bwt.release(), 4);
   fmi.Init();
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);

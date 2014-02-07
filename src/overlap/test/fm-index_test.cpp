@@ -18,20 +18,23 @@
 TEST(BucketedFmIndexTest, Rank) {
   size_t size = 500;
   uint8_t* bwt_data = new uint8_t[size + 1];
+  uint8_t* bwt_data_cpy = new uint8_t[size + 1];
   uint32_t depth = 4;
 
   srand(time(0));
   for (uint32_t i = 0; i < size; ++i) {
     bwt_data[i] = rand() % depth;
+    bwt_data_cpy[i] = bwt_data[i];
   }
+  bwt_data_cpy[size] = '\0';
   bwt_data[size] = '\0';
 
-  overlap::String bwt(bwt_data, size);
-  overlap::BucketedFmIndex fmi(bwt, 4, 32);
-  //overlap::WaveletFmIndex fmi(bwt, depth - 1);
+  overlap::String* bwt = new overlap::String(bwt_data_cpy, size);
+  //overlap::BucketedFmIndex fmi(new overlap::String(bwt_data_cpy), 4, 32);
+  overlap::WaveletFmIndex fmi(bwt, depth - 1);
   fmi.Init();
 
-  ASSERT_EQ(depth, fmi.max_val());
+  ASSERT_EQ(depth - 1, fmi.max_val());
   ASSERT_EQ(size, fmi.size());
 
   uint32_t cnt[5] = {0};
@@ -51,6 +54,8 @@ TEST(BucketedFmIndexTest, Rank) {
     csum += cnt[c];
   }
   ASSERT_EQ(csum, fmi.size());
+
+  delete[] bwt_data;
 }
 
 TEST(BucketedFmIndexTest, Integration) {
@@ -79,7 +84,7 @@ TEST(BucketedFmIndexTest, Integration) {
   overlap::UintArray order = overlap::STLStringOrder(reads);
   overlap::Sais2SACA saca;
   std::unique_ptr<overlap::String> bwt(saca.BuildBWT(reads, 4));
-  overlap::BucketedFmIndex fmi(*bwt, 4, 32);
+  overlap::BucketedFmIndex fmi(bwt.release(), 4, 32);
   fmi.Init();
 
   ASSERT_EQ(reads.size(), fmi.Less(1));

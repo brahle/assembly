@@ -74,7 +74,7 @@ BFSSuffixFilter::~BFSSuffixFilter() {
 }
 
 OverlapSet* BFSSuffixFilter::FindCandidates(const ReadSet& reads,
-    const UintArray& read_order, const FmIndex& fmi) {
+    const UintArray& read_order, const WaveletFmIndex& fmi) {
 
   const size_t num_reads = reads.size();
   std::unique_ptr<OverlapSet> candidates(
@@ -126,7 +126,7 @@ OverlapSet* BFSSuffixFilter::FilterCandidates(const OverlapSet& candidates) {
 }
 
 BFSSuffixFilter::BFSContext::BFSContext(const Read& read, const UintArray& read_order,
-    const FmIndex& fmi, size_t factor_size, OverlapSet* results)
+    const WaveletFmIndex& fmi, size_t factor_size, OverlapSet* results)
     : read_(read),
       read_order_(read_order),
       fmi_(fmi),
