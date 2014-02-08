@@ -18,7 +18,7 @@ class OverlapSet;
 class Read;
 class ReadSet;
 
-typedef WaveletFmIndex MyFmIndex;
+typedef BucketedFmIndex MyFmIndex;
 
 // Interface for suffix filter algorithm.
 class SuffixFilter {

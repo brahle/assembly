@@ -16,7 +16,7 @@
 #include "validate.h"
 
 int main(int argc, char* argv[]) {
-   google::ParseCommandLineFlags(&argc, &argv, true);
+  google::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 2) {
     exit(1);
   }
@@ -45,8 +45,8 @@ int main(int argc, char* argv[]) {
 
   printf("Building FM-index.\n");
   prev = clock();
-  overlap::WaveletFmIndex fmi(bwt.release(), 4);
-  //overlap::BucketedFmIndex fmi(bwt.release(), 4, 16);
+  //overlap::WaveletFmIndex fmi(bwt.release(), 4);
+  overlap::BucketedFmIndex fmi(bwt.release(), 4, 16);
   fmi.Init();
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
