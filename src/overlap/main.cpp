@@ -46,7 +46,8 @@ int main(int argc, char* argv[]) {
   printf("Building FM-index.\n");
   prev = clock();
   //overlap::WaveletFmIndex fmi(bwt.release(), 4);
-  overlap::BucketedFmIndex fmi(bwt.release(), 4, 16);
+  //overlap::BucketedFmIndex fmi(bwt.release(), 4, 16);
+  overlap::MyFmIndex fmi(bwt.release(), 4);
   fmi.Init();
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
@@ -74,18 +75,6 @@ int main(int argc, char* argv[]) {
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);
   size_t num_filtered_candidates = candidates->size();
 
-  FILE* fout = fopen(argv[2], "w");
-  for (uint32_t oid = 0; oid < candidates->size(); ++oid) {
-    const overlap::Overlap* o = candidates->Get(oid);
-    fprintf(fout, "%d %d %d %d EB %d\n",
-        reads->Get(o->read_one)->orig_id(),
-        reads->Get(o->read_two)->orig_id(),
-        o->len_one,
-        o->len_two,
-        o->score);
-  }
-  fclose(fout);
-
   printf("Validating overlap candidates.\n");
   prev = clock();
   candidates.reset(overlap::ValidateCandidates(*reads, *candidates));
@@ -101,7 +90,7 @@ int main(int argc, char* argv[]) {
   printf(" + number of overlaps: %zd\n", num_overlaps);
   printf(" + wall time: %.2fs\n", ((double)curr - start) / CLOCKS_PER_SEC);
 
-  fout = fopen(argv[3], "w");
+  FILE* fout = fopen(argv[2], "w");
   for (uint32_t oid = 0; oid < candidates->size(); ++oid) {
     const overlap::Overlap* o = candidates->Get(oid);
     fprintf(fout, "%d %d %d %d EB %d\n",

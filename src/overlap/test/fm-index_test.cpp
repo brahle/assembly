@@ -16,7 +16,7 @@
 
 
 TEST(BucketedFmIndexTest, Rank) {
-  size_t size = 1000000;
+  size_t size = 100000;
   uint8_t* bwt_data = new uint8_t[size + 1];
   std::unique_ptr<uint8_t[]> bwt_data_cpy(new uint8_t[size + 1]);
   uint32_t depth = 5;
@@ -31,7 +31,9 @@ TEST(BucketedFmIndexTest, Rank) {
 
   overlap::String* bwt = new overlap::String(bwt_data, size);
   //overlap::BucketedFmIndex fmi(bwt, 4, 16);
-  overlap::WaveletFmIndex fmi(bwt, depth - 1);
+  //overlap::WaveletFmIndex fmi(bwt, depth - 1);
+  overlap::BitBucketFmIndex fmi(bwt, 4);
+
   fmi.Init();
 
   ASSERT_EQ(size, fmi.size());
@@ -49,7 +51,7 @@ TEST(BucketedFmIndexTest, Rank) {
 
   uint32_t csum = 0;
   for (uint8_t c = 0; c < depth; ++c) {
-    //EXPECT_EQ(csum, fmi.Less(c));
+    EXPECT_EQ(csum, fmi.Less(c));
     csum += cnt[c];
   }
   ASSERT_EQ(csum, fmi.size());

@@ -100,6 +100,41 @@ class WaveletFmIndex {
   const wavelet::WaveletTree wavelet_tree_;
 };
 
+class BitBucketFmIndex {
+ public:
+  BitBucketFmIndex(String* bwt, size_t max_val);
+  ~BitBucketFmIndex();
+
+  void Init() {}
+
+  uint32_t Less(uint8_t chr) const {
+    return prefix_sum_[chr];
+  }
+
+  uint32_t Rank(uint8_t chr, uint32_t pos) const {
+    register uint32_t div = (pos >> 6) * depth_ + chr;
+    register uint32_t mod = pos & 63;
+    register uint64_t mask = ((1ULL << mod) - 1) & bit_bwt_[div];
+    return bucket_sums_[div] +
+      bit_counts_[mask & 65535] +
+      bit_counts_[(mask >> 16) & 65535] +
+      bit_counts_[(mask >> 32) & 65535] +
+      bit_counts_[(mask >> 48) & 65535];
+  }
+
+  size_t size() const { return size_; }
+  size_t max_val() const { return depth_ - 1; }
+
+ private:
+  const size_t size_;
+  const size_t depth_;
+  UintArray prefix_sum_;
+  const size_t num_buckets_;
+  std::unique_ptr<uint64_t[]> bit_bwt_;
+  std::unique_ptr<uint32_t[]> bucket_sums_;
+  std::unique_ptr<uint8_t[]> bit_counts_;
+};
+
 }  // namespace overlap
 
 #endif  // OVERLAP_FM_INDEX_H_
