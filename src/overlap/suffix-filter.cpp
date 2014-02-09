@@ -16,7 +16,7 @@
 #include "util.h"
 
 DECLARE_double(error_rate);
-DEFINE_int32(min_overlap_size, 25, "");
+DEFINE_int32(min_overlap_size, 30, "");
 
 namespace overlap {
 
@@ -135,17 +135,22 @@ BFSSuffixFilter::BFSContext::BFSContext(const Read& read, const UintArray& read_
       states_() {
 }
 
-void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
+void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t start_error) {
   assert(start_pos < read_.size());
-  Queue(0, fmi_.size(), 0, error, queue_[0], false);
+  Queue(0, fmi_.size(), 0, start_error, queue_[0], false);
 
+  uint32_t error;
   for (size_t qid = 0; !queue_[qid].empty(); qid = 1 - qid) {
     std::queue<State>& curr = queue_[qid];
     std::queue<State>& next = queue_[1 - qid];
 
-    while(!curr.empty()) {
+    for (; !curr.empty(); curr.pop()) {
       State& state = curr.front();
       error = states_.at(state);
+
+      if (start_error + (state.pos / factor_size_) == error && state.high - state.low <= 1) {
+        continue;
+      }
 
       CheckOverlaps(state, start_pos, error);
 
@@ -169,8 +174,6 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t error) {
           Queue(newlow, newhigh, state.pos, error - 1, next, false);
         }
       }
-
-      curr.pop();
     }
   }
 }
