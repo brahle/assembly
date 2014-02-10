@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   printf("Building BWT.\n");
   prev = clock();
-  overlap::SaisSACA saca;
+  overlap::Sais2SACA saca;
   std::unique_ptr<overlap::String> bwt(saca.BuildBWT(*reads, 4));
   if (bwt.get() == nullptr) {
     exit(1);
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 
   printf("Building FM-index.\n");
   prev = clock();
-  overlap::BucketedFmIndex fmi(*bwt, 4, 32);
+  overlap::WaveletFmIndex fmi(*bwt, 4);
   fmi.Init();
   curr = clock();
   printf("  %.2fs\n", ((double)curr - prev) / CLOCKS_PER_SEC);

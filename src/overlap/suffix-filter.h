@@ -6,6 +6,8 @@
 #include <queue>
 #include <unordered_map>
 
+#include <sparsehash/sparse_hash_map>
+
 #include "util.h"
 
 namespace overlap {
@@ -91,12 +93,13 @@ class BFSSuffixFilter : public SuffixFilter {
       bool operator()(const State& lhs, const State& rhs) const {
         return (lhs.low == rhs.low and
                 lhs.high == rhs.high and
-                lhs.pos == lhs.pos);
+                lhs.pos == rhs.pos);
       }
     };
 
     typedef std::queue<State> StateQueue;
     typedef std::unordered_map<State, uint32_t, StateHash, StateEqual> StateMap;
+    //typedef google::sparse_hash_map<State, uint32_t, StateHash, StateEqual> StateMap;
 
     inline void CheckOverlaps(
         const State& state,

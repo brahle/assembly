@@ -145,8 +145,8 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_pos, uint32_t start_error
     std::queue<State>& next = queue_[1 - qid];
 
     for (; !curr.empty(); curr.pop()) {
-      State& state = curr.front();
-      error = states_.at(state);
+      const State& state = curr.front();
+      error = states_[state];
 
       if (start_error + (state.pos / factor_size_) == error && state.high - state.low <= 1) {
         continue;
