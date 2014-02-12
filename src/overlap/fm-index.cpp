@@ -96,9 +96,11 @@ uint32_t BucketedFmIndex::Rank(uint8_t chr, uint32_t pos) const {
 }
 
 WaveletFmIndex::WaveletFmIndex(String* bwt, size_t max_val)
-  : FmIndex(bwt, max_val),
-    prefix_sum_(max_val + 1),
-    wavelet_tree_((char*)bwt->data(), bwt->size(), max_val + 1) {
+    : bwt_(bwt),
+      size_(bwt_->size()),
+      max_val_(max_val),
+      prefix_sum_(max_val + 1),
+      wavelet_tree_((char*)bwt_->data(), size_, max_val + 1) {
 }
 
 WaveletFmIndex::~WaveletFmIndex() {

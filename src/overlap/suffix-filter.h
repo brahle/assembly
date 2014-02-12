@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <sparsehash/sparse_hash_map>
 
@@ -17,6 +18,8 @@ class OverlapSet;
 class Read;
 class ReadSet;
 
+typedef WaveletFmIndex MyFmIndex;
+
 // Interface for suffix filter algorithm.
 class SuffixFilter {
  public:
@@ -27,7 +30,7 @@ class SuffixFilter {
   virtual OverlapSet* FindCandidates(
       const ReadSet& reads,
       const UintArray& read_order,
-      const WaveletFmIndex& fmi) = 0;
+      const MyFmIndex& fmi) = 0;
 
   // Filter out candidates that are not needed, like between same reads, or
   // very similar overlaps, keeping the best ones only.
@@ -36,7 +39,7 @@ class SuffixFilter {
 
   // Determine factor size based on error rate and overlap size threshold.
   static size_t FactorSize(
-      double error_rate,
+      int32_t error_rate,
       size_t min_overlap_size);
 
  protected:
@@ -53,7 +56,7 @@ class BFSSuffixFilter : public SuffixFilter {
   OverlapSet* FindCandidates(
       const ReadSet& reads,
       const UintArray& read_order,
-      const WaveletFmIndex& fmi);
+      const MyFmIndex& fmi);
 
   OverlapSet* FilterCandidates(
       const OverlapSet& candidates);
@@ -64,27 +67,32 @@ class BFSSuffixFilter : public SuffixFilter {
     BFSContext(
         const Read& read,
         const UintArray& read_order,
-        const WaveletFmIndex& fmi,
-        size_t factor_size,
+        const MyFmIndex& fmi,
+        const size_t factor_size,
+        const uint32_t start_pos,
         OverlapSet* results);
 
     void Start(
-        uint32_t start_pos,
-        uint32_t max_error);
+        uint32_t start_error);
 
     void Clear();
 
-   private:
+    size_t StateMapSize() const {
+      return states_.size();
+    }
+
     struct State {
       uint32_t low;
       uint32_t high;
       uint32_t pos;
+      uint32_t error;
     };
 
+   private:
     struct StateHash {
       std::size_t operator()(const State& k) const {
         register size_t state;
-        state = ((k.low << 5) + k.low) ^ k.high;
+        state = ((k.high << 5) + k.high) ^ k.low;
         return ((state << 5) + state) ^ k.pos;
       }
     };
@@ -98,31 +106,23 @@ class BFSSuffixFilter : public SuffixFilter {
     };
 
     typedef std::queue<State> StateQueue;
-    typedef std::unordered_map<State, uint32_t, StateHash, StateEqual> StateMap;
+    typedef std::unordered_set<State, StateHash, StateEqual> StateMap;
     //typedef google::sparse_hash_map<State, uint32_t, StateHash, StateEqual> StateMap;
 
-    inline void CheckOverlaps(
-        const State& state,
-        uint32_t start,
-        uint32_t error);
+    inline void CheckOverlaps(const State& state);
 
-    void Queue(
-        uint32_t low,
-        uint32_t high,
-        uint32_t pos,
-        uint32_t error,
-        StateQueue& queue,
-        bool can_inc);
+    void Queue(StateQueue& queue, State& state, const uint32_t error);
 
     const Read& read_;
     const UintArray& read_order_;
-    const WaveletFmIndex& fmi_;
+    const MyFmIndex& fmi_;
     const size_t factor_size_;
+    const uint32_t start_pos_;
 
     OverlapSet* results_;
 
-    StateQueue queue_[2];
     StateMap states_;
+    StateQueue queue_[2];
   };
 };
 

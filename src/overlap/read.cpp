@@ -6,7 +6,7 @@
 
 #include "read.h"
 
-DEFINE_int32(min_read_size, 60, "");
+DEFINE_int32(min_read_size, 100, "");
 
 namespace overlap {
 

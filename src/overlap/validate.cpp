@@ -11,8 +11,8 @@
 #include "read.h"
 #include "validate.h"
 
-DEFINE_double(error_rate, 0.02, "");
-DEFINE_int32(error_mult, 3, "");
+DEFINE_int32(error_rate, 2, "");
+DEFINE_double(error_mult, 4, "");
 
 namespace overlap {
 
@@ -33,7 +33,7 @@ OverlapSet* ValidateCandidates(
 
   std::unique_ptr<OverlapSet> overlaps(new OverlapSet(candidates.size()));
 
-  const double extra_ratio = 1 + (FLAGS_error_rate * FLAGS_error_mult);
+  const double extra_ratio = 1 + (FLAGS_error_rate * FLAGS_error_mult) / 100;
 
   for (uint32_t oid = 0; oid < candidates.size(); ++oid) {
     const Overlap* o = candidates[oid];
@@ -48,7 +48,7 @@ OverlapSet* ValidateCandidates(
         read_two->data(),
         std::min((int)(o->len_one * extra_ratio), (int)read_two->size()),
         5,
-        (int)(o->len_one * FLAGS_error_rate * FLAGS_error_mult),
+        (int)(o->len_one * FLAGS_error_rate * FLAGS_error_mult / 100),
         MYERS_MODE_SHW,
         &score,
         &len_two);

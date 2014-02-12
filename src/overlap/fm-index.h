@@ -67,7 +67,7 @@ class BucketedFmIndex : public FmIndex {
 };
 
 // Implementation of FM index that uses wavelet tree for rank queries.
-class WaveletFmIndex : public FmIndex {
+class WaveletFmIndex {
  public:
   WaveletFmIndex(String* bwt, size_t max_val);
   ~WaveletFmIndex();
@@ -87,7 +87,13 @@ class WaveletFmIndex : public FmIndex {
     return wavelet_tree_.get_rank(chr, pos);
   }
 
+  size_t size() const { return size_; }
+  size_t max_val() const { return max_val_; }
+
  private:
+  std::unique_ptr<String> bwt_;
+  const size_t size_;
+  const size_t max_val_;
   // Cumulative sum of total char counts.
   UintArray prefix_sum_;
   // Wavelet tree for rank queries.

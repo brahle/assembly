@@ -43,7 +43,7 @@ std::vector<uint32_t> STLStringOrder(const ReadSet& reads) {
   for (uint32_t idx = 0; idx < num_reads; ++idx) {
     order[idx] = idx;
   }
-  std::sort(order.begin(), order.end(), ReadCompare(reads));
+  std::stable_sort(order.begin(), order.end(), ReadCompare(reads));
 
   return order;
 }
