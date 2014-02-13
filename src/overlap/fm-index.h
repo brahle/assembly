@@ -117,9 +117,9 @@ class BitBucketFmIndex {
     register uint64_t mask = ((1ULL << mod) - 1) & bit_bwt_[div];
     return bucket_sums_[div] +
       bit_counts_[mask & 65535] +
-      bit_counts_[(mask >> 16) & 65535] +
-      bit_counts_[(mask >> 32) & 65535] +
-      bit_counts_[(mask >> 48) & 65535];
+      bit_counts_[(mask >> 16ULL) & 65535] +
+      bit_counts_[(mask >> 32ULL) & 65535] +
+      bit_counts_[(mask >> 48ULL) & 65535];
   }
 
   size_t size() const { return size_; }
@@ -128,11 +128,11 @@ class BitBucketFmIndex {
  private:
   const size_t size_;
   const size_t depth_;
-  UintArray prefix_sum_;
+  uint32_t* prefix_sum_;
   const size_t num_buckets_;
-  std::unique_ptr<uint64_t[]> bit_bwt_;
-  std::unique_ptr<uint32_t[]> bucket_sums_;
-  std::unique_ptr<uint8_t[]> bit_counts_;
+  uint64_t* bit_bwt_;
+  uint32_t* bucket_sums_;
+  uint8_t* bit_counts_;
 };
 
 }  // namespace overlap

@@ -130,32 +130,27 @@ uint32_t WaveletFmIndex::Rank(uint8_t chr, uint32_t pos) const {
 BitBucketFmIndex::BitBucketFmIndex(String* bwt, size_t max_val)
     : size_(bwt->size()),
       depth_(max_val + 1),
-      prefix_sum_(depth_ + 1, 0),
+      prefix_sum_(new uint32_t[depth_ + 1]),
       num_buckets_(size_ / 64 + 1),
       bit_bwt_(new uint64_t[num_buckets_ * depth_]),
       bucket_sums_(new uint32_t[num_buckets_ * depth_]),
       bit_counts_(new uint8_t[1 << 16]) {
 
   // Calculate bit counts.
-  memset(bit_counts_.get(), 0, (1 << 16) * sizeof(uint8_t));
+  memset(bit_counts_, 0, (1 << 16) * sizeof(uint8_t));
   for (uint32_t i = 0; i < (1 << 16); ++i) {
     for (uint32_t j = i; j; j >>= 1) {
       bit_counts_[i] += (j & 1);
     }
   }
 
-  assert(bit_counts_[0] == 0);
-  assert(bit_counts_[65535] == 16);
-  assert(bit_counts_[10] == 2);
-  assert(bit_counts_[10231] == 11);
-  assert(bit_counts_[1010] == 7);
-  assert(bit_counts_[32] == 1);
-
-  memset(bit_bwt_.get(), 0, num_buckets_ * depth_ * sizeof(uint64_t));
-  memset(bucket_sums_.get(), 0, num_buckets_ * depth_ * sizeof(uint32_t));
+  const uint8_t* bwt_data = bwt->data();
+  memset(prefix_sum_, 0, (depth_ + 1) * sizeof(uint32_t));
+  memset(bit_bwt_, 0, num_buckets_ * depth_ * sizeof(uint64_t));
+  memset(bucket_sums_, 0, num_buckets_ * depth_ * sizeof(uint32_t));
   for (uint32_t i = 0; i < size_; ++i) {
-    ++prefix_sum_[(*bwt)[i]];
-    uint32_t bix = (i >> 6) * depth_ + (*bwt)[i];
+    ++prefix_sum_[bwt_data[i]];
+    uint32_t bix = (i >> 6) * depth_ + bwt_data[i];
     uint32_t pix = i & 63;
     bit_bwt_[bix] |= (1ULL << pix);
     if (bix + depth_ < num_buckets_ * depth_) {
@@ -177,11 +172,13 @@ BitBucketFmIndex::BitBucketFmIndex(String* bwt, size_t max_val)
   }
 
   delete bwt;
-
-
 }
 
 BitBucketFmIndex::~BitBucketFmIndex() {
+  delete[] prefix_sum_;
+  delete[] bit_bwt_;
+  delete[] bucket_sums_;
+  delete[] bit_counts_;
 }
 
 }  // namespace overlap

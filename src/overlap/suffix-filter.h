@@ -39,7 +39,7 @@ class SuffixFilter {
 
   // Determine factor size based on error rate and overlap size threshold.
   static size_t FactorSize(
-      int32_t error_rate,
+      double error_rate,
       size_t min_overlap_size);
 
  protected:
@@ -114,6 +114,7 @@ class BFSSuffixFilter : public SuffixFilter {
     void Queue(StateQueue& queue, State& state, const uint32_t error);
 
     const Read& read_;
+    const uint8_t* read_data_;
     const UintArray& read_order_;
     const MyFmIndex& fmi_;
     const size_t factor_size_;

@@ -11,7 +11,7 @@
 #include "read.h"
 #include "validate.h"
 
-DEFINE_int32(error_rate, 2, "");
+DEFINE_double(error_rate, 2, "");
 DEFINE_double(error_mult, 4, "");
 
 namespace overlap {

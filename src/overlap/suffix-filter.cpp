@@ -16,7 +16,7 @@
 #include "suffix-filter.h"
 #include "util.h"
 
-DECLARE_int32(error_rate);
+DECLARE_double(error_rate);
 DEFINE_int32(min_overlap_size, 50, "");
 
 namespace overlap {
@@ -56,7 +56,7 @@ SuffixFilter::SuffixFilter()
 SuffixFilter::~SuffixFilter() {
 }
 
-size_t SuffixFilter::FactorSize(int32_t error_rate, size_t min_overlap_size) {
+size_t SuffixFilter::FactorSize(double error_rate, size_t min_overlap_size) {
   assert(error_rate > 0);
   assert(min_overlap_size > 0);
   size_t final_size = 1000;
@@ -129,12 +129,13 @@ BFSSuffixFilter::BFSContext::BFSContext(const Read& read,
     const UintArray& read_order, const MyFmIndex& fmi,
     const size_t factor_size, const uint32_t start_pos, OverlapSet* results)
     : read_(read),
+      read_data_(read.data()),
       read_order_(read_order),
       fmi_(fmi),
       factor_size_(factor_size),
       start_pos_(start_pos),
       results_(results),
-      states_(read.size() * 3) {
+      states_(read.size() * 10) {
 }
 
 void BFSSuffixFilter::BFSContext::Start(uint32_t start_error) {
@@ -164,13 +165,14 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_error) {
         read_[start_pos_ - curr_state.pos]);
         */
 
+      uint32_t nerr = curr_state.error + ((curr_state.pos + 1) % factor_size_ == 0 ? 1 : 0);
       if (curr_state.error > 0 && curr_state.pos <= start_pos_) {
         State next_state = {curr_state.low, curr_state.high, curr_state.pos + 1, 0};
-        uint32_t next_error = curr_state.error + (next_state.pos % factor_size_ == 0 ? 1 : 0);
-        Queue(next_queue, next_state, next_error - 1);
+        Queue(next_queue, next_state, nerr - 1);
       }
 
       uint32_t newlow, newhigh;
+      uint8_t read_chr = read_data_[start_pos_ - curr_state.pos];
       for (uint8_t cix = 1; cix <= fmi_.max_val(); ++cix) {
         newlow = fmi_.Less(cix) + fmi_.Rank(cix, curr_state.low);
         newhigh = fmi_.Less(cix) + fmi_.Rank(cix, curr_state.high);
@@ -179,12 +181,10 @@ void BFSSuffixFilter::BFSContext::Start(uint32_t start_error) {
 
         if (curr_state.pos <= start_pos_) {
           State next_state = {newlow, newhigh, curr_state.pos + 1, 0};
-          uint8_t next_error = curr_state.error + (next_state.pos % factor_size_ == 0 ? 1 : 0);
-
-          if (cix == read_[start_pos_ - curr_state.pos]) {
-            Queue(curr_queue, next_state, next_error);
+          if (cix == read_chr) {
+            Queue(curr_queue, next_state, nerr);
           } else if (curr_state.error > 0) {
-            Queue(next_queue, next_state, next_error - 1);
+            Queue(next_queue, next_state, nerr - 1);
           }
         }
         if (curr_state.error > 0) {
@@ -218,7 +218,7 @@ void BFSSuffixFilter::BFSContext::CheckOverlaps(const State& state) {
 void BFSSuffixFilter::BFSContext::Queue(StateQueue& queue, State& state, uint32_t error) {
   state.error = error;
   auto prev = states_.find(state);
-  if (prev == states_.end() || prev->error < error) {
+  if (prev == states_.end()) {// || prev->error < error) {
     queue.push(state);
     states_.insert(state);
   }
