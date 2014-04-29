@@ -28,9 +28,9 @@ Unitigging::~Unitigging() {
 
 void Unitigging::start() {
   removeContainmentEdges();
-  //  printf("Bez kontejnmenta = %d\n", no_contains_->size());
+  //printf("Bez kontejnmenta = %d\n", no_contains_->size());
   removeTransitiveEdges();
-  //  printf("Bez tranzitiva = %d\n", no_transitives_->size());
+  //printf("Bez tranzitiva = %d\n", no_transitives_->size());
   makeContigs();
 }
 
@@ -178,6 +178,7 @@ void Unitigging::makeContigs() {
         degrees[read_two][better_overlap->Suf(read_two)] == 1) {
       auto contig_one = uf.find(read_one);
       auto contig_two = uf.find(read_two);
+      // printf("Spajam %d i %d\n", contig_one, contig_two);
       auto larger = uf.join(read_one, read_two);
       if (larger == contig_one) {
         (*contigs_)[contig_one]->Join(better_overlap, (*contigs_)[read_two]);

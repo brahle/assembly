@@ -1,6 +1,7 @@
 #include "layout/layout_utils.h"
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 namespace layout {
 
@@ -86,6 +87,24 @@ overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd) {
       "Overlaps read in %.2lfs\n",
       (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));
   return overlap_set;
+}
+
+int n50(ContigSet* contig_set) {
+  std::vector< int > v;
+  v.reserve(contig_set->size()*10);
+  for (size_t i = 0; i < contig_set->size(); ++i) {
+    if ((*contig_set)[i]->IsUsable()) {
+      printf("Contig %d: size = %d\n", i, (*contig_set)[i]->size());
+      for (size_t j = 0; j < (*contig_set)[i]->size(); ++j) {
+        v.push_back((*contig_set)[i]->size());
+      }
+    }
+  }
+  if (v.size() == 0) {
+    return 0;
+  }
+  std::sort(v.begin(), v.end());
+  return v[v.size()/2];
 }
 
 };  // namespace layout

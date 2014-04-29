@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
   std::shared_ptr< overlap::ReadSet > reads(layout::ReadReadsAfg(reads_file));
   std::shared_ptr< overlap::OverlapSet > overlaps(
-      layout::ReadOverlapsAfg(reads.get(), reads_file));
+      layout::ReadOverlapsAfg(reads.get(), overlaps_file));
 
   clock_t start = clock();
   std::unique_ptr< layout::Unitigging > u(
@@ -27,6 +27,9 @@ int main(int argc, char *argv[]) {
       stderr,
       "Unitigging finished in %.2lfs\n",
       (clock() - start) / static_cast<double>(CLOCKS_PER_SEC));
+
+  int n50_value = layout::n50(u->contigs());
+  fprintf(stderr, "n50 = %d\n", n50_value);
 
   fclose(overlaps_file);
   fclose(reads_file);
