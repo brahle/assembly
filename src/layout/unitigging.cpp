@@ -1,7 +1,13 @@
-#include "layout/unitigging.h"
+// Copyright 2014 Bruno Rahle
+
 #include <layout/union_find.h>
+
 #include <cstring>
+
+#include <algorithm>
 #include <vector>
+
+#include "layout/unitigging.h"
 
 namespace layout {
 
@@ -21,21 +27,31 @@ Unitigging::Unitigging(
 }
 
 Unitigging::~Unitigging() {
-  delete no_contains_;
-  delete no_transitives_;
-  delete contigs_;
 }
 
 void Unitigging::start() {
   removeContainmentEdges();
-  //printf("Bez kontejnmenta = %d\n", no_contains_->size());
   removeTransitiveEdges();
-  //printf("Bez tranzitiva = %d\n", no_transitives_->size());
   makeContigs();
 }
 
-ContigSet* Unitigging::contigs() const {
+Unitigging::ContigSetPtr& Unitigging::contigs() {
   return contigs_;
+}
+
+const Unitigging::BetterOverlapSetPtr& Unitigging::noContains() const {
+  return no_contains_;
+}
+
+const Unitigging::BetterOverlapSetPtr& Unitigging::noTransitives() const {
+  return no_transitives_;
+}
+
+const Unitigging::BetterReadSetPtr& Unitigging::readSet() {
+  if (better_read_set_ == nullptr) {
+    better_read_set_ = BetterReadSetPtr(new BetterReadSet(reads_, false));
+  }
+  return better_read_set_;
 }
 
 void Unitigging::removeContainmentEdges() {
@@ -45,12 +61,12 @@ void Unitigging::removeContainmentEdges() {
     BetterOverlap* better_overlap = overlaps_[i];
     overlap::Overlap* overlap = better_overlap->overlap();
     if (better_overlap->one()->size() == overlap->len_one) {
-      erased[overlap->read_one] = 1;
+      erased[overlap->read_one] = true;
     } else if (better_overlap->two()->size() == overlap->len_two) {
-      erased[overlap->read_two] = 1;
+      erased[overlap->read_two] = true;
     }
   }
-  no_contains_ = new BetterOverlapSet(reads_);
+  no_contains_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
   for (size_t i = 0; i < overlaps_.size(); ++i) {
     BetterOverlap* better_overlap = overlaps_[i];
     overlap::Overlap* overlap = better_overlap->overlap();
@@ -58,6 +74,17 @@ void Unitigging::removeContainmentEdges() {
     if (erased[overlap->read_two]) continue;
     no_contains_->Add(new BetterOverlap(better_overlap));
   }
+  int erased_count = std::count(erased, erased + reads_->size(), true);
+  fprintf(
+      stderr,
+      "Contained reads = %d (%.2lf%%)\n",
+      erased_count,
+      static_cast< double >(erased_count * 100.0) / reads_->size());
+  fprintf(
+      stderr,
+      "Edges after removing contained reads = %d (%.2lf%%)\n",
+      no_contains_->size(),
+      static_cast< double >(no_contains_->size()* 100.0) / overlaps_.size());
   delete [] erased;
 }
 
@@ -134,7 +161,7 @@ inline void Unitigging::removeTransitiveEdges() {
     }
   }
 
-  no_transitives_ = new BetterOverlapSet(reads_);
+  no_transitives_ = BetterOverlapSetPtr(new BetterOverlapSet(reads_));
   size_t idx = 0;
   for (size_t i = 0; i < no_contains_->size(); ++i) {
     if (idx < erased.size() && i == erased[idx]) {
@@ -144,6 +171,12 @@ inline void Unitigging::removeTransitiveEdges() {
     auto better_overlap = (*no_contains_)[i];
     no_transitives_->Add(new BetterOverlap(better_overlap));
   }
+  int transitive_edge_count = no_contains_->size() - no_transitives_->size();
+  fprintf(
+      stderr,
+      "Transitive edges = %d (%.2lf%%)\n",
+      transitive_edge_count,
+      (transitive_edge_count * 100.0) / no_contains_->size());
 }
 
 void Unitigging::makeContigs() {
@@ -167,7 +200,7 @@ void Unitigging::makeContigs() {
 
   UnionFind uf(reads_->size());
   BetterReadSet brs(reads_, 1);
-  contigs_ = new ContigSet(&brs);
+  contigs_ = ContigSetPtr(new ContigSet(&brs));
 
   for (size_t i = 0; i < no_transitives_->size(); ++i) {
     auto better_overlap = (*no_transitives_)[i];

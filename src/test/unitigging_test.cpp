@@ -1,3 +1,5 @@
+// Copyright 2014 Bruno Rahle
+
 #include "test/unitigging_test.h"
 #include <overlap/read.h>
 #include <overlap/overlap.h>
@@ -154,10 +156,10 @@ bool UnitiggingCompleteTest::run() {
   auto read_set = layout::ReadReadsAfg(rfd_);
   auto overlap_set = layout::ReadOverlapsAfg(read_set, ofd_);
   auto unitigging = new layout::Unitigging(read_set, overlap_set);
-  clock_t start = clock();
+  double start = clock();
   unitigging->start();
   printf("Unitigging done in %.2lfs\n", (clock() - start)/CLOCKS_PER_SEC);
-  layout::ContigSet* contigs = unitigging->contigs();
+  auto contigs = unitigging->contigs();
   int number = 0;
   for (size_t i = 0; i < contigs->size(); ++i) {
     auto contig = (*contigs)[i];
@@ -188,11 +190,20 @@ void UnitiggingTestRunner::run() {
   int successful = 0;
 
   for (auto test : tests_) {
+    double test_start = clock();
     bool result = test->run();
     if (result == false) {
-      fprintf(stderr, "\e[31mFAILED: %s\033[m\n", typeid(*test).name());
+      fprintf(
+          stderr,
+          "\e[31mFAILED: %s (%.2lfs) \033[m\n",
+          typeid(*test).name(),
+          (clock()-test_start)/CLOCKS_PER_SEC);
     } else {
-      fprintf(stderr, "\e[32m%s OK!\033[m\n", typeid(*test).name());
+      fprintf(
+          stderr,
+          "\e[32mOK: %s (%.2lfs) \033[m\n",
+          typeid(*test).name(),
+          (clock()-test_start)/CLOCKS_PER_SEC);
     }
     total += 1;
     successful += result;

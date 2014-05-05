@@ -1,15 +1,35 @@
+// Copyright 2014 Bruno Rahle
 #ifndef LAYOUT_UNION_FIND_H_
 #define LAYOUT_UNION_FIND_H_
 
 namespace layout {
 
+/**
+ * An implementation of the disjoint-set datastructure.
+ */
 class UnionFind {
  public:
+  /**
+   * Creates a UnionFind object that stores n objects.
+   */
   explicit UnionFind(int n);
+
+  /**
+   * Destructor.
+   */
   ~UnionFind();
 
+  /**
+   * Finds the group element x belongs to.
+   */
   int find(int x);
+
+  /**
+   * Joins groups elements x and y belong to. Returns the new group both
+   * belong to after the operation, which is guarnateed to be either x or y.
+   */
   int join(int x, int y);
+
  private:
   struct Node {
     int value_;

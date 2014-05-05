@@ -1,3 +1,4 @@
+// Copyright 2014 Bruno Rahle
 #include "layout/better_read.h"
 
 #include <algorithm>
@@ -31,6 +32,38 @@ const BetterRead::OverlapVector& BetterRead::overlaps() const {
   return overlaps_;
 }
 
+BetterReadSetIter::BetterReadSetIter(
+    const BetterReadSet* better_read_set,
+    int position) :
+    better_read_set_(better_read_set),
+    position_(position) {
+}
+
+bool BetterReadSetIter::operator!=(const BetterReadSetIter& other) const {
+  return
+      better_read_set_ != other.better_read_set_ ||
+      position_ != other.position_;
+}
+
+bool BetterReadSetIter::operator==(const BetterReadSetIter& other) const {
+  return
+      better_read_set_ == other.better_read_set_ &&
+      position_ == other.position_;
+}
+
+BetterRead* BetterReadSetIter::operator*() const {
+  return (*better_read_set_)[position_];
+}
+
+const BetterReadSetIter& BetterReadSetIter::operator++() {
+  position_++;
+  return *this;
+}
+
+const BetterReadSetIter& BetterReadSetIter::operator++(int ignorable) {
+  position_++;
+  return *this;
+}
 
 BetterReadSet::BetterReadSet(size_t size) :
     read_set_(size),
@@ -67,6 +100,14 @@ void BetterReadSet::Finalize() {
   for (auto &read : read_set_) {
     read->Finalize();
   }
+}
+
+BetterReadSetIter BetterReadSet::begin() const {
+  return BetterReadSetIter(this, 0);
+}
+
+BetterReadSetIter BetterReadSet::end() const {
+  return BetterReadSetIter(this, size());
 }
 
 };  // namespace layout

@@ -1,38 +1,60 @@
-#include "layout/layout_utils.h"
+// Copyright 2014 Bruno Rahle
+
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include <algorithm>
+
+#include "layout/layout_utils.h"
 
 namespace layout {
 
+/**
+ * Reads data for one read from the .afg file.
+ */
+uint8_t* _ReadDataForOneRead(FILE *fd) {
+  static char buff[1 << 20];
+  char *buff_free = buff;
+  fscanf(fd, " seq: ");
+  buff[0] = 0;
+  do {
+    // We remove one character for '\n'. However, in the first step, strlen is
+    // 0, so we don't want to move in the negative direction.
+    buff_free += std::max(0, static_cast<int>(strlen(buff_free) - 1));
+    fgets(buff_free, sizeof(buff) - sizeof(char) * (buff_free - buff), fd);
+  } while (buff_free[0] != '.');
+  int length = buff_free - buff;
+  char* data = new char[length+1];
+  strncpy(data, buff, length);
+  data[length] = 0;
+  return reinterpret_cast<uint8_t*>(data);
+}
+
 overlap::Read* ReadOneReadAfg(FILE *fd) {
-    int id;
-    int length;
-    char c;
-    const uint8_t *data = new uint8_t[1];
-    fscanf(fd, " iid:%d eid:%*s", &id);
-    do {
-      fscanf(fd, " %c", &c);
-    } while (c != '.');
-    do {
-      fscanf(fd, " %c", &c);
-    } while (c != '.');
-    fscanf(fd, " frg:%*d clr:%*d,%d", &length);
-    return new overlap::Read(data, length, (id-1), id);
+  static char buff[1 << 20];
+  char *buff_free = buff;
+  int id;
+  int length;
+  fscanf(fd, " iid:%d eid:%*s", &id);
+  uint8_t *data = _ReadDataForOneRead(fd);
+  do {
+    fgets(buff, sizeof(buff), fd);
+  } while (buff[0] != '.');
+  fscanf(fd, " frg:%*d clr:%*d,%d", &length);
+  return new overlap::Read(data, length, (id-1), id);
 }
 
 overlap::ReadSet* ReadReadsAfg(FILE *fd) {
   clock_t start = clock();
   auto read_set = new overlap::ReadSet(10000);
   int i = 0;
-  char buff[1 << 17];
+  char buff[1 << 20];
   while (fscanf(fd, " %s", buff) == 1) {
     if (!strcmp(buff, "{RED")) {
       read_set->Add(ReadOneReadAfg(fd));
     }
   }
-  fprintf(
-      stderr,
+  printf(
       "Reads read in %.2lfs\n",
       (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));
   return read_set;
@@ -82,19 +104,19 @@ overlap::OverlapSet* ReadOverlapsAfg(overlap::ReadSet* read_set, FILE *fd) {
         overlap::Overlap::Type::EB,
         0));
   }
-  fprintf(
-      stderr,
+  printf(
       "Overlaps read in %.2lfs\n",
       (clock() - start)/static_cast<double>(CLOCKS_PER_SEC));
   return overlap_set;
 }
 
-int n50(ContigSet* contig_set) {
+int n50(Unitigging::ContigSetPtr contig_set) {
   std::vector< int > v;
+  int cnt = 0;
   v.reserve(contig_set->size()*10);
   for (size_t i = 0; i < contig_set->size(); ++i) {
     if ((*contig_set)[i]->IsUsable()) {
-      printf("Contig %d: size = %d\n", i, (*contig_set)[i]->size());
+      printf("Contig %d: size = %d\n", ++cnt, (*contig_set)[i]->size());
       for (size_t j = 0; j < (*contig_set)[i]->size(); ++j) {
         v.push_back((*contig_set)[i]->size());
       }
